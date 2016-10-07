@@ -5,7 +5,7 @@ window.cookies = require('./CookieMonster.js');
 
 window.cookies.lastView();
 
-var $ = require('../thirdParty/jquery-3.1.0.min.js');
+var $ = require('./jquery-3.1.0.min.js');
 window.$ - $;
 window.jQuery = $;
 
@@ -49,7 +49,11 @@ function loadYear(year){
 }
 
 function loadMonth(year,month){
-    var m = Date.parse(month+" 1 "+year);
+	var m = new Date();
+	var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+	m.setFullYear(year);
+	m.setMonth(month-1);
+	m.setDate(1);
     $('#title').html(m.toString("MMMM yyyy"));
     var nextMonth = month+1;
     var nextYear = year;
@@ -64,17 +68,25 @@ function loadMonth(year,month){
 	var days = Date.getDaysInMonth(year,month-1);
 	for(w=1;w<=6;w++){
 		for(d=1;d<=7;d++){
-			var day = (w-1)*7+d-offset;
-            var urlDay = day;
-            if(day<1){
+			var day = (w-1)*7+d-offset
+            var urlDay = (w-1)*7+d-offset;
+            if(((w-1)*7+d-offset)<1){
                 if(month==1){
-                    urlDay += Date.getDaysInMonth(year-1,12);
+                    urlDay = 31 + (w-1)*7+d-offset;
                 }else{
-                    urlDay += Date.getDaysInMonth(year,month-1);
+                    urlDay = Date.getDaysInMonth(year,month-2) + (w-1)*7+d-offset;
                 }
             }
             if(d==1){
-             $('#w'+w).attr('onclick','goToNewPage(\''+'week.html#'+year+zeroPad(month,2)+w+zeroPad(urlDay,2)+'\')');
+				//Week 6 cannot be clicked if month does not have 6 weeks
+				if(w == 6 && ((days > 29 && offset == 6) || (days == 31 && offset == 5)))
+				{
+					$('#w'+w).attr('onclick','goToNewPage(\''+'week.html#'+year+zeroPad(month,2)+w+zeroPad(urlDay,2)+'\')');
+				}
+				else if(w!=6)
+				{
+					$('#w'+w).attr('onclick','goToNewPage(\''+'week.html#'+year+zeroPad(month,2)+w+zeroPad(urlDay,2)+'\')');
+				}
             }
 			if((day>0)&&(day<=days)){
                 var element = $('#w'+w+'d'+d);
@@ -87,83 +99,148 @@ function loadMonth(year,month){
 }
 
 function loadWeek(year,month,week,day){
-    var days = Date.getDaysInMonth(year,month-1);
-    var date = day;
-    var weekNumber = week;
-    var displayMonth = month;
-    var begin = Date.parse(month+'/'+day+'/'+year);
-    var end = Date.parse(begin.toString('MMMM d yyyy'));
-    end.addDays(6);
-    //------------------------------------
-    if(begin.getDate() > end.getDate() && week == 1)
-    {
-	begin = Date.parse((month-1)+'/'+day+'/'+year);
-	end = Date.parse(begin.toString('MMMM d yyyy'));
-	    //Doesn't always work - Need some logic here or in for loop
-	end.addDays(6);
-    }
-    //------------------------------------
-    var previous = Date.parse(begin.toString('MMMM d yyyy'));;
-    var next = Date.parse(begin.toString('MMMM d yyyy'));
-    previous.addDays(-7);
-    next.addDays(7);
-    /*Next week: week++ (5->1)
-    * if # days in month = 30 & first day of month started on Sat, then week -> 6, else week -> 1
-    * if # days in month = 31 & first day of month started on Fri/Sat, then week -> 6, else week -> 1
-    *Previous week: week-- (1->5)
-    * if # days in previous month = 30 & first day of previous month started on Sat, then week -> 6, else week -> 5
-    * if # days in previous month = 31 & first day of previous month started on Fri/Sat, then week -> 6, else week -> 5
-    */
-    var nextWeek = weekNumber++;
-    var prevWeek = weekNumber--;
-    if(nextWeek == 6)
-    {
-	var firstDay = Date.parse(month+'/1/'+year);
-	if(Date.getDaysInMonth(year,month-1) == 30 && firstDay.getDay() == 6){}
-	else if(Date.getDaysInMonth(year,month-1) == 31 && firstDay.getDay() == 6 || firstDay.getDay() == 5){}
-	else
+	var begin = new Date();
+	var end = new Date();
+	var loopDay = day;
+	if(week == 1 && day > 7) //Beginning of week is last month
 	{
-		nextWeek = 1;
+		if(month == 1) //January
+		{
+			begin.setDate(day);
+			begin.setFullYear(year-1);
+			begin.setMonth(11);
+			end.setFullYear(year);
+			end.setMonth(0);
+			var loopMonth = 12;
+		}
+		else
+		{
+			begin.setDate(day);
+			begin.setFullYear(year);
+			begin.setMonth(month-2);
+			end.setFullYear(year);
+			end.setMonth(month-1);
+			var loopMonth = month-1;
+		}
+		for(var d = 1; d <= 7; d++)
+		{
+			$('#d'+d).html(loopMonth+'/'+loopDay);
+			if(month == 1 && loopDay > 7)
+			{
+				$('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+(year-1)+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+			}
+			else
+			{
+				$('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+			}
+			loopDay++;
+			if(loopDay > Date.getDaysInMonth(year,loopMonth-1)) //Week starts with last month
+			{
+				loopDay = 1;
+				if(loopMonth == 12)
+				{
+					loopMonth = 1;
+				}
+				else
+				{
+					loopMonth++;
+				}
+			}
+		}
+		end.setDate(loopDay-1);
 	}
-    }
-    if(prevWeek == 0)
-    {
-	var lastMonthFirstDay = Date.parse((month-1)+'/1/'+year);
-	if(Date.getDaysInMonth(year,month-2) == 30 && firstDay.getDay() == 6)
+	else //Not week 1
 	{
-		prevWeek = 6;
+		begin.setDate(day);
+		begin.setFullYear(year);
+		begin.setMonth(month-1);
+		var loopMonth = month;
+		for(var d = 1; d <= 7; d++)
+		{
+			$('#d'+d).html(loopMonth+'/'+loopDay);
+			if(month == 12 && week > 2 && loopDay < 8) //December and week goes into next year
+			{
+				$('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+(year+1)+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+			}
+			else
+			{
+				$('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+			}
+			loopDay++;
+			if(loopDay > Date.getDaysInMonth(year,loopMonth-1))
+			{
+				loopDay = 1;
+				if(loopMonth == 12)
+				{
+					loopMonth = 1;
+					end.setFullYear(year+1);
+					end.setMonth(0);
+				}
+				else
+				{
+					end.setFullYear(year);
+					end.setMonth(loopMonth);
+					loopMonth++;
+				}
+			}
+			else
+			{
+				end.setMonth(loopMonth-1);
+				end.setFullYear(year);
+			}
+		}
+		end.setDate(loopDay-1);
 	}
-	else if(Date.getDaysInMonth(year,month-1) == 31 && firstDay.getDay() == 6 || firstDay.getDay() == 5)
-	{
-		prevWeek = 6;
-	}
-	else
-	{
-		prevWeek = 5;
-	}
-    }
-    //-------------------------------------
-    $('#title').html(begin.toString('MMMM d')+' - '+end.toString('MMMM d'));
-    $('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+nextWeek+zeroPad(next.getDate(),2)+'\')');
-    $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+prevWeek+zeroPad(previous.getDate(),2)+'\')');
-    $('#back').attr('onclick','goToNewPage(\''+'month.html#'+year.toString()+month.toString()+'\')');
     
-    for(d=1;d<=7;d++){
-        if(date>days){
-            date = 1;
-            if(month==12){
-                month=1;
-            }else{
-                month++;
-            }
-        }
-        $('#d'+d).html(month+'/'+date);
-        $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(month,2)+zeroPad(date,2)+'\')');
-        date++;
-    }
+	$('#title').html(begin.toString('MMMM d')+' - '+end.toString('MMMM d'));
+	var previous = Date.parse(begin.addDays(-7).toString('MMMM d yyyy'));;
+    var next = Date.parse(end.addDays(1).toString('MMMM d yyyy'));
+	if(week != 1)
+	{
+		$('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+(week-1)+zeroPad(previous.getDate(),2)+'\')');
+	}
+	else //Previous week will become 6, 5(, or maybe 4)
+	{
+		var temp = new Date();
+		temp.setFullYear(previous.getYear()+1900);
+		temp.setMonth(previous.getMonth());
+		temp.setDate(1);
+		if((Date.getDaysInMonth(temp.getYear(),temp.getMonth()) > 29 && temp.getDay() == 6) || (Date.getDaysInMonth(temp.getYear(),temp.getMonth()) == 31 && temp.getDay() == 5))
+		{
+			$('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"6"+zeroPad(previous.getDate(),2)+'\')');
+		}
+		else
+		{
+			$('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"5"+zeroPad(previous.getDate(),2)+'\')');
+		}
+	}
+	if(week == 6)
+	{
+		$('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"1"+zeroPad(next.getDate(),2)+'\')');
+	}
+	else if(week == 5) //If month only has 5 weeks, next week is week 1
+	{
+		var temp = new Date();
+		temp.setFullYear(year);
+		temp.setMonth(month-1);
+		temp.setDate(1);
+		if((Date.getDaysInMonth(year,month-1) < 30) || (Date.getDaysInMonth(year,month-1) == 30 && temp.getDay() < 6) || (Date.getDaysInMonth(year,month-1) == 31 && temp.getDay() < 5))
+		{
+			$('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"1"+zeroPad(next.getDate(),2)+'\')');
+		}
+		else
+		{
+			$('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"6"+zeroPad(next.getDate(),2)+'\')');
+		}
+	}
+	else
+	{
+		$('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+(week+1)+zeroPad(next.getDate(),2)+'\')');
+	}
+    $('#back').attr('onclick','goToNewPage(\''+'month.html#'+year.toString()+month.toString()+'\')');
 }
 
-function loadDay(year,month,day){
+function loadDay(year,month,week,day){
     var thisDay = Date.parse(month+'/'+day+'/'+year);
     window.date = thisDay.toString('MMddyyyy');
     var previous = Date.parse(thisDay.toString('MMMM d yyyy'));;
@@ -171,12 +248,12 @@ function loadDay(year,month,day){
     previous.addDays(-1);
     next.addDays(1);
     $('#title').html(thisDay.toString('MMMM d yyyy'));
-    $('#next').attr('onclick','goToSamePage(\''+'day.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+zeroPad(next.getDate(),2)+'\')');
-    $('#previous').attr('onclick','goToSamePage(\''+'day.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+zeroPad(previous.getDate(),2)+'\')');
+    $('#next').attr('onclick','goToSamePage(\''+'day.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+week+zeroPad(next.getDate(),2)+'\')');
+    $('#previous').attr('onclick','goToSamePage(\''+'day.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+week+zeroPad(previous.getDate(),2)+'\')');
     var startOfWeek = Date.parse(month+'/'+day+'/'+year);
     var offset = startOfWeek.getDay();
     startOfWeek.addDays(0-offset);
-    $('#back').attr('onclick','goToNewPage(\''+'week.html#'+year.toString()+zeroPad(month.toString(),2)+zeroPad(startOfWeek.getDate(),2)+'\')');
+    $('#back').attr('onclick','goToNewPage(\''+'week.html#'+year.toString()+zeroPad(month.toString(),2)+week+zeroPad(startOfWeek.getDate(),2)+'\')');
     var times = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
     for(x=1;x<=24;x++){
         $('#add'+x).attr('onclick','cookies.setCookie(\''+window.date+'\',\''+times[x-1]+'\')');
@@ -193,25 +270,25 @@ $(document).ready(function(){
         case 'week.html':
             loadWeek(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)),parseInt(id.substr(6,1)),parseInt(id.substr(7,2)));
             break;
-		case 'month.html':
-			loadMonth(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)));
-			break;
+	case 'month.html':
+		loadMonth(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)));
+		break;
         case 'year.html':
             loadYear(id);
             break;
         case 'day.html':
-            loadDay(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)),parseInt(id.substr(6,2)));
+            loadDay(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)),parseInt(id.substr(6,1)),parseInt(id.substr(7,2)));
             break;
         case 'start.html':
             
             break;
 	}
 });
-
-},{"./CookieMonster.js":2,"../thirdParty/jquery-3.1.0.min.js":6,"./test.js":7}],2:[function(require,module,exports){
+	
+},{"./CookieMonster.js":2,"./jquery-3.1.0.min.js":6,"./test.js":7}],2:[function(require,module,exports){
 //user clicks add event on certain day which calls the following script and gives
 //the script a  unique ID
-var $ = require('../thirdParty/jquery-3.1.0.min.js');
+var $ = require('./jquery-3.1.0.min.js');
 window.$ - $;
 window.jQuery = $;
 
@@ -222,6 +299,7 @@ setCookie: function(date, time){
   var name=prompt("Please enter the name of the Event:","");//set name
   var location=prompt("Please enter the location: ","");//set location
   var duration=prompt("Please enter duration: ",""); //set duration
+  createPopUp("<div class='popUp'><iframe src='http://google.com'></iframe><br><button onclick='this.parentNode.parentNode.removeChild(this.parentNode);'>Close</button></div>");
   var content = name+" at "+location+" for "+duration;// create cookie content
   var d = new Date();
   d.setTime(d.getTime() + (30*24*60*60*1000)) //current time plus 30 days but could be event date.
@@ -287,8 +365,8 @@ getCookie: function(date) {
     }
 
 }
-},{"../thirdParty/jquery-3.1.0.min.js":6}],3:[function(require,module,exports){
-var Datejs = require('../thirdParty/date.js');
+},{"./jquery-3.1.0.min.js":6}],3:[function(require,module,exports){
+var Datejs = require('./date.js');
 //Date.js is a JavaScript library to work with dates and times
 
 module.exports = {
@@ -311,7 +389,7 @@ Event: function(name,date,duration,location){
 
 };
 
-},{"../thirdParty/date.js":5}],4:[function(require,module,exports){
+},{"./date.js":5}],4:[function(require,module,exports){
 var Event = require('./Event.js');
 
 window.events = new Array();
@@ -466,3 +544,4 @@ for(x=0;x<10;x++){
 	eventHandler.addEvent("Sample Event "+x,Date.parse("October "+x+", 2016, "+x+":00pm"),x*10,"Sample Location "+x);
 }
 },{"./EventHandler.js":4}]},{},[1]);
+
