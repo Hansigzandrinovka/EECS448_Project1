@@ -16,6 +16,9 @@ setCookie: function(date, time){
   d.setTime(d.getTime() + (30*24*60*60*1000)) //current time plus 30 days but could be event date.
   var expires = "expires=" + d.toGMTString();
   document.cookie = id+"="+content+"; "+expires;// create cookie
+    if(duration > 1){
+        var time2 = time +1;
+        var id2 = date+"-"+time2+"-"+new Date().getTime();}
     window.location.reload();
   return content;// return cookie content to be displayed in day view.
 },
