@@ -26,22 +26,24 @@ goToSamePage = function(url){
 }
 
 function loadYear(year){
-    for(m=1;m<=12;m++){
+    for(m=1;m<=12;m++){ //iterate across the months, configuring them to be clickable
         var month = Date.parse(m+" 1 "+year);
         $('#m'+m+'title').html(month.toString("MMMM yyyy"));
         $('#month'+m).attr('href',('month.html#'+year+zeroPad(m,2)));
         $('#next').attr('onclick','goToSamePage(\''+'year.html#'+(parseInt(year)+1)+'\')');
         $('#previous').attr('onclick','goToSamePage(\''+'year.html#'+(parseInt(year)-1)+'\')');
-        var offset = month.getDay();
-        var days = Date.getDaysInMonth(year,m-1);
-        for(w=1;w<=6;w++){
-            for(d=1;d<=7;d++){
+        var offset = month.getDay(); //determines what numerical weekday the month starts on, starting at 0 (0 is Sunday, 1 is Monday)
+        var days = Date.getDaysInMonth(year,m-1); //get number of days in the current month
+        for(w=1;w<=6;w++){ //iterate through the weeks of the given month
+            for(d=1;d<=7;d++){//iterate through the days of the given week
                 var day = (w-1)*7+d-offset;
-                if((day>0)&&(day<=days)){
+                if((day>0)&&(day<=days)){ //fails when selected day is before month start day, or after month stop day
                     var element = $('#m'+m+'w'+w+'d'+d);
                     element.attr('id','m'+m+'d'+day);
                     element = $('#m'+m+'d'+day);
                     element.html('<a>'+day+'</a>');
+					//means that every official day of the month will have tag of form: (mXdY), rather than default (mXwYdZ)
+					//and, will have their day number filled in
                 }
             }
         }
@@ -85,7 +87,7 @@ function loadMonth(year,month){
 		}
 	}
 }
-
+//get the days of current week as an object from Date, then configure navigation to next/previous days
 function loadWeek(year,month,day){
     var days = Date.getDaysInMonth(year,month-1);
     var date = day;
@@ -93,7 +95,7 @@ function loadWeek(year,month,day){
     var begin = Date.parse(month+'/'+day+'/'+year);
     var end = Date.parse(begin.toString('MMMM d yyyy'));
     end.addDays(6);
-    var previous = Date.parse(begin.toString('MMMM d yyyy'));;
+    var previous = Date.parse(begin.toString('MMMM d yyyy'));; //should these be "MMMM dd yyyy"?
     var next = Date.parse(begin.toString('MMMM d yyyy'));
     previous.addDays(-7);
     next.addDays(7);
@@ -118,8 +120,8 @@ function loadWeek(year,month,day){
 }
 
 function loadDay(year,month,day){
-    var thisDay = Date.parse(month+'/'+day+'/'+year);
-    window.date = thisDay.toString('MMddyyyy');
+    var thisDay = Date.parse(month+'/'+day+'/'+year); //returns time in milliseconds since Jan 1, 1970 as reference frame
+    window.date = thisDay.toString('MMddyyyy'); //presumably stores current day in cookie?
     var previous = Date.parse(thisDay.toString('MMMM d yyyy'));;
     var next = Date.parse(thisDay.toString('MMMM d yyyy'));
     previous.addDays(-1);
@@ -193,6 +195,7 @@ deleteCookie: function(id){
     window.location.reload();
 },
 
+//creates a new cookie "LastView" tracking last view date?
 lastView: function(){
   var content = window.location.href;
   var id = "LastView";
@@ -202,6 +205,7 @@ lastView: function(){
   document.cookie = id+"="+content+"; "+expires;
 },
     
+//checks to see if a last view exists, then tries to redirect to it.
 getLastView: function(){
     var doc = document.cookie.split(';');
     for(var i=0;i<doc.length;i++){
@@ -221,21 +225,23 @@ getLastView: function(){
 
 getCookie: function(date) {
     var times = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
-    var doc = document.cookie.split(';');
-    for(var i=0; i<doc.length; i++) {
+    var doc = document.cookie.split(';'); //splits string into array of strings separating by ';' character (Every ; found makes a new string)
+    console.log("Getting cookie: " + doc); //example output: 11012016-12AM-1475718170273=named event at the location for entered duration, 10302016-12AM-1475718569011=a at b for c, 07022016-12AM-1475719434959=a at b for c
+	for(var i=0; i<doc.length; i++) { //for each component cookie, remove white space, then read in details information and display on DayView
         var cookie = doc[i];
-        while (cookie.charAt(0)==' ') {
+        while (cookie.charAt(0)==' ') { //remove all white-space
             cookie = cookie.substring(1);
         }
-        if(cookie.includes(date)){
-          var crumb = cookie.split('=');
-          var content = crumb[1];
-          var crumb2 = crumb[0].split('-');
-          var time = crumb2[1];
-          var id = crumb[0];
-          $('#'+time).append(content+'<br><br>');
+		console.log("Cookie without whitespace: " + cookie); //example: 11012016-12AM-1475718170273=named event at the location for entered duration
+        if(cookie.includes(date)){//if the given date is in the string for the cookie, read further
+          var crumb = cookie.split('='); //2 parts: 11012016-12AM-1475718170273 //and: named event at the location for entered duration
+          var content = crumb[1];//named event at the location for entered duration
+          var crumb2 = crumb[0].split('-');//11012016 &: 12AM &: 1475718170273 :(3 parts)
+          var time = crumb2[1]; //12AM
+          var id = crumb[0]; //11012016
+          $('#'+time).append(content+'<br><br>'); //add details for this event to that view
           var remNum = times.indexOf(time)+1;
-          $('#rem'+remNum).attr('onclick','cookies.deleteCookie(\''+id+'\')');
+          $('#rem'+remNum).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
         }
       }
     }
