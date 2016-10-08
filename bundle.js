@@ -181,22 +181,57 @@ module.exports = {
 setCookie: function(date, time){
   var id = date+"-"+time+"-"+new Date().getTime();
   var name=prompt("Please enter the name of the Event:","");//set name
+  if(!name) //user didn't put in a name, so assume they don't want to create an event
+  {
+	  return "";
+  }
   var location=prompt("Please enter the location: ","");//set location
-  var duration=prompt("Please enter duration: ",""); //set duration
-  var content = name+" at "+location+" for "+duration;// create cookie content
+  if(!location)
+  {
+	  return "";
+  }
+  var endTime=prompt("Please enter end time: ","12:00PM-1-12-2016"); //set duration
+  if(!endTime)
+  {
+	  return "";
+  }
+  //validate the input user gave us:
+  var badValue = true;
+  var arrayOfParts = endTime.split('-'); //expect 4 parts, "12:00PM","1","12","2016"
+  if(arrayOfParts.length == 4) //retry if user doesn't have 4 parts (they broke the string!!!)
+  {
+	  var time = arrayOfParts[0].split('P'); //if no P, try Q
+	  if(!time)
+	  {
+		  time = arrayOfParts[0].split('A'); //now we have "12:00" and "M" (we don't care about the M yet)
+		  time[1] = "AM";
+	  }
+	  else
+	  {
+		  time[1] = "PM"
+	  }
+	//now try to convert 12:00 to a time number.
+  }
+  
+  //var numberFromString = Number(duration); //see if user gave us an ideal duration
+  var content = name+" at "+location+" until "+endTime;// create cookie content
   var d = new Date();
   d.setTime(d.getTime() + (30*24*60*60*1000)) //current time plus 30 days but could be event date.
   var expires = "expires=" + d.toGMTString();
   document.cookie = id+"="+content+"; "+expires;// create cookie
     window.location.reload();
-  return content;// return cookie content to be displayed in day view.
+	console.log("setCookie returning 'content': " + content);
+  return content;// return cookie content to be displayed in day view. ex output: "a at b for c"
 },
 
+//deletes a cookie of a particular ID by setting its cookie expiration date to the day before today
 deleteCookie: function(id){
   var d = new Date();;
   d.setTime(d.getTime() + (-1*24*60*60*1000))
   var expires = "expires=" + d.toGMTString();
+  alert("Old cookie: " + document.cookie);
   document.cookie = id+"="+""+"; "+expires;
+  alert("New cookie: " + document.cookie);
     window.location.reload();
 },
 
