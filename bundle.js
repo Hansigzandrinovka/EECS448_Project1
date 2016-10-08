@@ -33,6 +33,7 @@ function loadYear(year){
         $('#next').attr('onclick','goToSamePage(\''+'year.html#'+(parseInt(year)+1)+'\')');
         $('#previous').attr('onclick','goToSamePage(\''+'year.html#'+(parseInt(year)-1)+'\')');
         var offset = month.getDay(); //determines what numerical weekday the month starts on, starting at 0 (0 is Sunday, 1 is Monday)
+		//console.log("Offset for month " + m + ": " + offset);
         var days = Date.getDaysInMonth(year,m-1); //get number of days in the current month
         for(w=1;w<=6;w++){ //iterate through the weeks of the given month
             for(d=1;d<=7;d++){//iterate through the days of the given week
@@ -89,10 +90,12 @@ function loadMonth(year,month){
 }
 //get the days of current week as an object from Date, then configure navigation to next/previous days
 function loadWeek(year,month,day){
+	//console.log("loadWeek: y" + year + " m" + month + " d" + day);
     var days = Date.getDaysInMonth(year,month-1);
     var date = day;
     var displayMonth = month;
     var begin = Date.parse(month+'/'+day+'/'+year);
+	//console.log("Begin is " + begin);
     var end = Date.parse(begin.toString('MMMM d yyyy'));
     end.addDays(6);
     var previous = Date.parse(begin.toString('MMMM d yyyy'));; //should these be "MMMM dd yyyy"?
@@ -141,12 +144,14 @@ function loadDay(year,month,day){
 }
 
 $(document).ready(function(){
+	//console.log("url is " + document.location.href);
 	var page = document.location.href.match(/[^\/]+$/)[0];
     page = page.substr(0,page.lastIndexOf('#'));
     var url = window.location.href;
     var id = url.substring(url.lastIndexOf('#') + 1);
 	switch(page){
         case 'week.html':
+			//console.log("Weekview ID is " + id);
             loadWeek(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)),parseInt(id.substr(6,2)))
             break;
 		case 'month.html':
@@ -198,10 +203,12 @@ deleteCookie: function(id){
 //creates a new cookie "LastView" tracking last view date?
 lastView: function(){
   var content = window.location.href;
+  console.log("Setting last view Content: " + content);
   var id = "LastView";
   var d = new Date();
   d.setTime(d.getTime() + (-1*24*60*60*1000));
   var expires = "expires=" + d.toGMTString();
+  console.log("Last view Expires: " + expires);
   document.cookie = id+"="+content+"; "+expires;
 },
     
@@ -279,6 +286,7 @@ window.events = new Array();
 module.exports = {
 
 addEvent: function(name,date,duration,location){
+	console.log("Adding event: name is " + name + ", date is " + date + ", duration is " + duration + ", location is " + location);
 	var newEvent = new Event.Event(name,date,duration,location);
 	window.events.push(newEvent);
 },
