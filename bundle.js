@@ -233,7 +233,7 @@ getCookie: function(date) {
           var crumb2 = crumb[0].split('-');
           var time = crumb2[1];
           var id = crumb[0];
-		time =8;
+		
           $('#'+time).append(content+'<br><br>');
           var remNum = times.indexOf(time)+1;
           $('#rem'+remNum).attr('onclick','cookies.deleteCookie(\''+id+'\')');
