@@ -1,0 +1,310 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dayview</title>
+<script src="./bundle.js"></script>
+    <style>
+            h1{
+                font-family:sans-serif;
+                padding:10px;
+            }
+            #nav{
+                display:block;
+                height:50px;
+            }
+            #next{
+                float:right;
+            }
+            #nav a{
+                margin:10px;
+                text-decoration:bold;
+                font-family:sans-serif;
+                display:inline-block;
+                border:1px solid blue;
+                padding:7px;
+                background-color:#ddd;
+            }
+            table{
+                margin:auto;
+                font-family:sans-serif;
+                vertical-align:top;
+                border-collapse:collapse;
+            }
+            #title{
+                height:100px;
+                font-size:30px;
+                background-color:#0f0;
+                border:2px inset gray;
+            }
+            th{
+                height:30px;
+                border:2px inset gray;
+            }
+            td{
+                width:250px;
+                height:50px;
+                vertical-align:top;
+                border:2px inset gray;
+                padding:5px;
+            }
+            td a{
+                font-size:22px;
+                text-decoration:bold;
+            }
+        </style>
+</head>
+
+<body onunload="window.cookies.lastView()">
+    <div id="nav">
+        <a id="previous" href="#">&lt;&lt; Previous Day</a>
+        <a id="back" href="#">^ back to week page</a>
+        <a id="next" href="#">Next Day &gt;&gt;</a>
+    </div>
+    <h1 id="title"></h1>
+ <table border='2'  bordercolor='#00f000' cellspacing='0' cellpadding='1' align=center >
+<tbody>
+<tr>  
+  <td>12:00 AM</td>
+<td id="12AM"> </td><td><button id="add1"> Add Event </button></td>
+<td> <button id="rem1" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>12:30 AM</td>
+<td id="1230AM"> </td><td><button id="add2"> Add Event </button></td>
+<td> <button id="rem2" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>1:00 AM</td>
+<td id="1AM"> </td><td><button id="add3"> Add Event </button></td>
+<td> <button id="rem3" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>1:30 AM</td>
+<td id="130AM"> </td><td><button id="add4"> Add Event </button></td>
+<td> <button id="rem4" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>2:00 AM</td>
+<td id="2AM"> </td><td><button id="add5"> Add Event </button></td>
+<td> <button id="rem5" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>2:30 AM</td>
+<td id="230AM"> </td><td><button id="add6"> Add Event </button></td>
+<td> <button id="rem6" onclick=""> Delete Event </button></td>
+</tr>
+<tr >
+<td>3:00 AM</td>
+<td id="3AM"> </td><td><button id="add7"> Add Event </button></td>
+<td> <button id="rem7" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>3:30 AM</td>
+<td id="330AM"> </td><td><button id="add8"> Add Event </button></td>
+<td> <button id="rem8" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>4:00 AM</td>
+<td id="4AM"> </td><td><button id="add9"> Add Event </button></td>
+<td> <button id="rem9" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>4:30 AM</td>
+<td id="430AM"> </td><td><button id="add10"> Add Event </button></td>
+<td> <button id="rem10" onclick=""> Delete Event </button></td>
+</tr>
+<tr >
+<td>5:00 AM</td>
+<td id="5AM"> </td><td><button id="add11"> Add Event </button></td>
+<td> <button id="rem11" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>5:30 AM</td>
+<td id="530AM"> </td><td><button id="add12"> Add Event </button></td>
+<td> <button id="rem12" onclick=""> Delete Event </button></td>
+</tr>
+<tr >
+<td>6:00 AM</td>
+<td id="6AM"> </td><td><button id="add13"> Add Event </button></td>
+<td> <button id="rem13" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>6:30 AM</td>
+<td id="630AM"> </td><td><button id="add14"> Add Event </button></td>
+<td> <button id="rem14" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>7:00 AM</td>
+<td id="7AM"> </td><td><button id="add15"> Add Event </button></td>
+<td> <button id="rem15" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>7:30 AM</td>
+<td id="730AM"> </td><td><button id="add16"> Add Event </button></td>
+<td> <button id="rem16" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>8:00 AM</td>
+<td id="8AM"> </td><td><button id="add17"> Add Event </button></td>
+<td> <button id="rem17" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>8:30 AM</td>
+<td id="830AM"> </td><td><button id="add18"> Add Event </button></td>
+<td> <button id="rem18" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>9:00 AM</td>
+<td id="9AM"> </td><td><button id="add19"> Add Event </button></td>
+<td> <button id="rem19" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>9:30 AM</td>
+<td id="930AM"> </td><td><button id="add20"> Add Event </button></td>
+<td> <button id="rem20" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>10:00 AM</td>
+<td id="10AM"> </td><td><button id="add21"> Add Event </button></td>
+<td> <button id="rem21" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>10:30 AM</td>
+<td id="1030AM"> </td><td><button id="add22"> Add Event </button></td>
+<td> <button id="rem22" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>11:00 AM</td>
+<td id="11AM"> </td><td><button id="add23"> Add Event </button></td>
+<td> <button id="rem23" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>11:30 AM</td>
+<td id="1130AM"> </td><td><button id="add24"> Add Event </button></td>
+<td> <button id="rem24" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>12:00 PM</td>
+<td id="12PM"> </td><td><button id="add25"> Add Event </button></td>
+<td> <button id="rem25" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>12:30 PM</td>
+<td id="1230PM"> </td><td><button id="add26"> Add Event </button></td>
+<td> <button id="rem26" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>1:00 PM</td>
+<td id="1PM"> </td><td><button id="add27"> Add Event </button></td>
+<td> <button id="rem27" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>1:30 PM</td>
+<td id="130PM"> </td><td><button id="add28"> Add Event </button></td>
+<td> <button id="rem28" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>2:00 PM</td>
+<td  id="2PM"> </td><td><button id="add29"> Add Event </button></td>
+<td> <button id="rem29" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>2:30 PM</td>
+<td id="230PM"> </td><td><button id="add30"> Add Event </button></td>
+<td> <button id="rem30" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>3:00 PM</td>
+<td  id="3PM"> </td><td><button id="add31"> Add Event </button></td>
+<td> <button id="rem31" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>3:30 PM</td>
+<td id="330PM"> </td><td><button id="add32"> Add Event </button></td>
+<td> <button id="rem32" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>4:00 PM</td>
+<td  id="4PM"> </td><td><button id="add33"> Add Event </button></td>
+<td> <button id="rem33" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>4:30 PM</td>
+<td id="430PM"> </td><td><button id="add34"> Add Event </button></td>
+<td> <button id="rem34" onclick=""> Delete Event </button></td>
+</tr>
+<tr>
+<td>5:00 PM</td>
+<td  id="5PM"> </td><td><button id="add35"> Add Event </button></td>
+<td> <button id="rem35" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>5:30 PM</td>
+<td id="530PM"> </td><td><button id="add36"> Add Event </button></td>
+<td> <button id="rem36" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+<td>6:00 PM</td>
+<td  id="6PM"> </td><td><button id="add37"> Add Event </button></td>
+<td> <button id="rem37" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>6:30 PM</td>
+<td id="630PM"> </td><td><button id="add38"> Add Event </button></td>
+<td> <button id="rem38" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+<td>7:00 PM</td>
+<td  id="7PM"> </td><td><button id="add39"> Add Event </button></td>
+<td> <button id="rem39" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>7:30 PM</td>
+<td id="730PM"> </td><td><button id="add40"> Add Event </button></td>
+<td> <button id="rem40" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+<td>8:00 PM</td>
+<td  id="8PM"> </td><td><button id="add41"> Add Event </button></td>
+<td> <button id="rem41" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>8:30 PM</td>
+<td id="830PM"> </td><td><button id="add42"> Add Event </button></td>
+<td> <button id="rem42" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+<td>9:00 PM</td>
+<td  id="9PM"> </td><td><button id="add43"> Add Event </button></td>
+<td> <button id="rem43" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>9:30 PM</td>
+<td id="930PM"> </td><td><button id="add44"> Add Event </button></td>
+<td> <button id="rem44" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+<td>10:00 PM</td>
+<td  id="10PM"> </td><td><button id="add45"> Add Event </button></td>
+<td> <button id="rem45" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>10:30 PM</td>
+<td id="1030PM"> </td><td><button id="add46"> Add Event </button></td>
+<td> <button id="rem46" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+<td>11:00 PM</td>
+<td  id="11PM"> </td><td><button id="add47"> Add Event </button></td>
+<td> <button id="rem47" onclick=""> Delete Event </button></td>
+</tr>
+<tr>  
+  <td>11:30 PM</td>
+<td id="1130PM"> </td><td><button id="add48"> Add Event </button></td>
+<td> <button id="rem48" onclick=""> Delete Event </button></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>
