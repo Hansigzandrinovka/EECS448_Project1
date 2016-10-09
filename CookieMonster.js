@@ -8,7 +8,7 @@ module.exports = {
     
 setCookie: function(date, time){
   var id = date+"-"+time+"-"+new Date().getTime();
-  var name=prompt("Please enter the name of the Event:","");//set name
+  var name=prompt("Please enter the name of the lll Event:","");//set name
   var location=prompt("Please enter the location: ","");//set location
   var duration=prompt("Please enter duration: ",""); //set duration
   var content = name+" at set cookies"+location+" for "+duration;// create cookie content
