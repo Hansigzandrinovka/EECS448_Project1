@@ -176,7 +176,6 @@ setCookie: function(date, time){
   var name=prompt("Please enter the name of the Event:","");//set name
   var location=prompt("Please enter the location: ","");//set location
   var duration=prompt("Please enter duration: ",""); //set duration
-	var temp = prompt("temporary prompt");
   var content = name+" at "+location+" for "+duration;// create cookie content
   var d = new Date();
   d.setTime(d.getTime() + (30*24*60*60*1000)) //current time plus 30 days but could be event date.
@@ -293,6 +292,7 @@ deleteEvent: function(idNum){
   for(var i= 0; i < events.length; i++){
     if(events[i]['id'] === idNum){
       var del = events.splice(i, 1);
+	    alert("in the event delete alert");
       delete del;
     }
     else {
