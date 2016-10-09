@@ -175,7 +175,7 @@ setCookie: function(date, time){
   var id = "";
 
   var d = new Date();
-  d.setTime(d.getTime() + (30*24*60*60*1000)); //current time plus 30 days but could be event date
+  d.setTime(d.getTime() + (5*365*24*60*60*1000)); //current time plus 5 years but could be event date
   var expires = "expires=" + d.toGMTString();
 
   var name=prompt("Please enter the name of the Event:","");//set name
