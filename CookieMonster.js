@@ -29,6 +29,7 @@ deleteCookie: function(id){
   d.setTime(d.getTime() + (-1*24*60*60*1000))
   var expires = "expires=" + d.toGMTString();
   document.cookie = id+"="+""+"; "+expires;
+    alert(""eEvent Deleted!);
     window.location.reload();
 },
 
