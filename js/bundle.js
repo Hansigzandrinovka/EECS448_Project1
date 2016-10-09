@@ -49,7 +49,12 @@ function loadYear(year){
 }
 
 function loadMonth(year,month){
-    var m = Date.parse(month+" 1 "+year);
+    var m = new Date();
+    var months = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"]
+    m.setFullYear(year);
+    m.setMonth(month-1);
+    m.setDate(1);
     $('#title').html(m.toString("MMMM yyyy"));
     var nextMonth = month+1;
     var nextYear = year;
@@ -62,20 +67,27 @@ function loadMonth(year,month){
     $('#back').attr('onclick','goToNewPage(\''+'year.html#'+prevYear+'\')');
 	var offset = m.getDay();
 	var days = Date.getDaysInMonth(year,month-1);
-	for(w=1;w<=6;w++){
-		for(d=1;d<=7;d++){
-			var day = (w-1)*7+d-offset;
-            var urlDay = day;
-            if(day<1){
-                if(month==1){
-                    urlDay += Date.getDaysInMonth(year-1,12);
-                }else{
-                    urlDay += Date.getDaysInMonth(year,month-1);
-                }
-            }
-            if(d==1){
-             $('#w'+w).attr('onclick','goToNewPage(\''+'week.html#'+year+zeroPad(month,2)+zeroPad(urlDay,2)+'\')');
-            }
+	for(w=1;w<=6;w++)
+  {
+		for(d=1;d<=7;d++)
+    {
+			var day = ((w-1)*7+d-offset);
+      var urlDay = day;
+      if(day<1)
+      {
+        if(month==1)
+        {
+          urlDay += Date.getDaysInMonth(year-1,12);
+        }
+        else
+        {
+          urlDay += Date.getDaysInMonth(year,month-1);
+        }
+      }
+      if(d==1)
+      {
+        $('#w'+w).attr('onclick','goToNewPage(\''+'week.html#'+year+zeroPad(month,2)+zeroPad(urlDay,2)+'\')');
+      }
 			if((day>0)&&(day<=days)){
                 var element = $('#w'+w+'d'+d);
 				element.attr('id','d'+day);
