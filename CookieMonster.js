@@ -11,6 +11,7 @@ setCookie: function(date, time){
   var name=prompt("Please enter the name of the lll Event:","");//set name
   var location=prompt("Please enter the location: ","");//set location
   var duration=prompt("Please enter duration: ",""); //set duration
+    prompt("test: ","");
   var content = name+" at set cookies"+location+" for "+duration;// create cookie content
   var d = new Date();
   d.setTime(d.getTime() + (30*24*60*60*1000)) //current time plus 30 days but could be event date.
