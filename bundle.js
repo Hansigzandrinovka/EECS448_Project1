@@ -145,13 +145,19 @@ function loadDay(year,month,day){
 
 $(document).ready(function(){
 	//console.log("url is " + document.location.href);
-	var page = document.location.href.match(/[^\/]+$/)[0];
-    page = page.substr(0,page.lastIndexOf('#'));
-    var url = window.location.href;
-    var id = url.substring(url.lastIndexOf('#') + 1);
+	var page = document.location.href.match(/[^\/]+$/)[0]; //seems to get the ending part of the current URL starting at current file
+		//IE Outputs month.html#201601 in month view Jan 2016
+	//console.log("Page variable is " + page);
+    page = page.substr(0,page.lastIndexOf('#')); //drops the extension "#201601"
+	console.log("Page changes to: " + page) ;
+    var url = window.location.href; //full URL
+	//console.log("URL is " + url);
+    var id = url.substring(url.lastIndexOf('#') + 1); //holds current year/month/day information "201601"
+		//a little redundant considering page had extension before...
+	//console.log("ID is " + id);
 	switch(page){
         case 'week.html':
-			//console.log("Weekview ID is " + id);
+			console.log("First Week Param " + parseInt(id.substr(0,4)));
             loadWeek(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)),parseInt(id.substr(6,2)))
             break;
 		case 'month.html':
@@ -179,7 +185,7 @@ window.jQuery = $;
 module.exports = {
     
 setCookie: function(date, time){
-  var id = date+"-"+time+"-"+new Date().getTime();
+  
   var name=prompt("Please enter the name of the Event:","");//set name
   if(!name) //user didn't put in a name, so assume they don't want to create an event
   {
@@ -190,30 +196,40 @@ setCookie: function(date, time){
   {
 	  return "";
   }
-  var endTime=prompt("Please enter end time: ","12:00PM-1-12-2016"); //set duration
+  var endTime=prompt("Please enter end time: ","12:00PM-1-12-2016"); //set ending date and time
   if(!endTime)
   {
 	  return "";
   }
-  //validate the input user gave us:
-  var badValue = true;
+  //try to build a Date using information:
   var arrayOfParts = endTime.split('-'); //expect 4 parts, "12:00PM","1","12","2016"
-  if(arrayOfParts.length == 4) //retry if user doesn't have 4 parts (they broke the string!!!)
+  var time2 = arrayOfParts[0].split(':'); //expect 2 parts, "12" (hours), "00PM" (minutes)
+  min_ampm = time2[1].split('PM'); //expect 2 parts, "00","PM"
+  if(min_ampm) //if read in PM correctly, we can add 12 hours unless is 12:00
   {
-	  var time = arrayOfParts[0].split('P'); //if no P, try Q
-	  if(!time)
-	  {
-		  time = arrayOfParts[0].split('A'); //now we have "12:00" and "M" (we don't care about the M yet)
-		  time[1] = "AM";
-	  }
+	  min_ampm[1] = "PM";
+	  time2[0] = Number(time[0]); //add 12 hours if in PM mode
+	  if(time2[0] == 12)
+		  time2[0] = 12;
 	  else
-	  {
-		  time[1] = "PM"
-	  }
-	//now try to convert 12:00 to a time number.
+		  time2[0] = time2[0] + 12;
   }
+  else //otw either read AM or bad input
+  {
+	  min_ampm[1] = "AM";
+	  time2[0] = Number(time[0]);
+	  if(time2[0] == 12) //corrupted inputs stay corrupted, but 12AM becomes midnight
+		  time2[0] = 0;
+  }
+	  
+  console.log("Interpreted Time: y" + Number(arrayOfParts[3]) + "m" + Number(arrayOfParts[1]) + "d" + Number(arrayOfParts[2]) + "h" + Number(time2[0]) + "m" + Number(min_ampm[0]));
+  var givenDate = new Date(Number(arrayOfParts[3]),Number(arrayOfParts[1]) - 1,Number(arrayOfParts[2]),Number(time2[0]),Number(min_ampm[0]));  
+  //arrayOfParts[3] is year, arrayOfParts[2] is Day, arrayOfParts[1] is Month, time[0] is hours, min_ampm[0] is seconds
+  console.log("Created a new Date " + givenDate);
+  var id_extension = zeroPad(arrayOfParts[3],4) + zeroPad(arrayOfParts[1],2) + zeroPad(arrayOfParts[2],2) + "-" + time[0] + ":" + min_ampm[0] + "" + min_ampm[1];
+  var id = date+"-"+time+"-"+id_extension+"-"+new Date().getTime();
+  console.log("Cookie ID is " + id);
   
-  //var numberFromString = Number(duration); //see if user gave us an ideal duration
   var content = name+" at "+location+" until "+endTime;// create cookie content
   var d = new Date();
   d.setTime(d.getTime() + (30*24*60*60*1000)) //current time plus 30 days but could be event date.
@@ -238,12 +254,12 @@ deleteCookie: function(id){
 //creates a new cookie "LastView" tracking last view date?
 lastView: function(){
   var content = window.location.href;
-  console.log("Setting last view Content: " + content);
+  //console.log("Setting last view Content: " + content);
   var id = "LastView";
   var d = new Date();
   d.setTime(d.getTime() + (-1*24*60*60*1000));
   var expires = "expires=" + d.toGMTString();
-  console.log("Last view Expires: " + expires);
+  //console.log("Last view Expires: " + expires);
   document.cookie = id+"="+content+"; "+expires;
 },
     
@@ -321,7 +337,7 @@ window.events = new Array();
 module.exports = {
 
 addEvent: function(name,date,duration,location){
-	console.log("Adding event: name is " + name + ", date is " + date + ", duration is " + duration + ", location is " + location);
+	//console.log("Adding event: name is " + name + ", date is " + date + ", duration is " + duration + ", location is " + location);
 	var newEvent = new Event.Event(name,date,duration,location);
 	window.events.push(newEvent);
 },
@@ -469,3 +485,4 @@ for(x=0;x<10;x++){
 	eventHandler.addEvent("Sample Event "+x,Date.parse("October "+x+", 2016, "+x+":00pm"),x*10,"Sample Location "+x);
 }
 },{"./EventHandler.js":4}]},{},[1]);
+
