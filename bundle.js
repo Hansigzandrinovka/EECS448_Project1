@@ -307,9 +307,19 @@ getLastView: function(){
 //inputs:
 	//date is the current date expressed in getCookie: 01072016 is Jan 1st, 2016
 	//range is the date range retrieved from the cookie with times removed: 12012016-12032016 for the 1st-3rd of Dec 2016 
+//return: integer representing 4 state Enum
+	//0 => date is outside range (7 Oct 2016 not in range 3 May 2016 - 5 May 2016)
+	//1 => date IS range (range is X:00 - Y:05 on 7 Oct 2016 where date = 7 Oct 2016)
+	//2 => date is within range, excluding end-points (date 5 Oct 2016 is between 3 Oct 2016 and 7 Oct 2016)
+	//3 => date is beginning of range (date = 7 Oct 2016, range 7 Oct 2016 - 3 Dec 2016)
+	//4 => date is end of range (date = 3 Dec 2016, range 7 Oct 2016 - 3 Dec 2016)
+	
+//some minor changes from http://stackoverflow.com/questions/13291661/check-if-a-date-within-in-range
 checkDateWithinRange: function(date,range)
 {
 	console.log("Check date in range: overall string: " + range);
+	var today = new Date();
+	today = new Date(today.getFullYear(),today.getMonth(),today.getDate()); //zeros out any hour,minute,second values
 	//convert date to an actual date
 	var startDate = range.substring(0,8); //takes first 8 characters to get first date ie 20161201
 	//console.log("Start string: " + startDate);
@@ -317,28 +327,53 @@ checkDateWithinRange: function(date,range)
 	//console.log("End string: " + endDate);
 	//console.log("New range: " + range);
 	//check if year is within range
-	var startDateObj = new Date();
+	var startDateObj = new Date(today); //start date initializes to today, so it has zeroed hms valuse
 	//var testOutput = [Number(startDate.substring(4,8)),Number(startDate.substring(2,4)) - 1,Number(startDate.substring(0,2))];
 	//console.log("Date array: " + testOutput);
 	startDateObj.setFullYear(Number(startDate.substring(4,8)),Number(startDate.substring(0,2)) - 1,Number(startDate.substring(2,4)));
 	//converts the start date to a Date object so we can compare it to other date objects with std operations >=<
-	var endDateObj = new Date();
+	var endDateObj = new Date(today); //end date initializes to today, so it has zeroed hms values
 	endDateObj.setFullYear(Number(endDate.substring(4,8)),Number(endDate.substring(0,2)) - 1,Number(endDate.substring(2,4)));
 	
-	var testDateObj = new Date();
+	var testDateObj = new Date(today);
 	testDateObj.setFullYear(Number(date.substring(4,8)),Number(date.substring(0,2)) - 1,Number(date.substring(2,4)));
-	console.log("Start date " + startDateObj);
-	console.log("End date " + endDateObj);
-	console.log("Test date " + testDateObj);
-	if(testDateObj >= startDate && testDateObj <= endDate)
+	
+//	console.log("After start: " + (testDateObj >= startDateObj));
+//	console.log("Before start: " + (testDateObj <= startDateObj));
+//	console.log("After end: " + (testDateObj >= endDateObj));
+//	console.log("Before end: " + (testDateObj <= endDateObj));
+//	console.log("Final result: " + ((testDateObj >= startDate) && (testDateObj <= endDateObj)));
+//	console.log("Start date " + startDateObj);
+//	console.log("End date " + endDateObj);
+//	console.log("Test date " + testDateObj);
+	console.log((true) && (false));
+	if((testDateObj > startDateObj) && (testDateObj < endDateObj))
+		//To decide if event is today, we check if it started at or before today (we don't care what time yet)
+		//and that it hasn't ended yet (it ends sometime at or after today)
 	{
-		return true;
+		return 2;
+	}
+	else if(testDateObj == startDateObj) //starts today, so unless bad data, we're keeping this event
+	{
+		if(testDateObj == endDateObj)
+			return 1;
+		else if(testDateObj < endDateObj)
+			return 3;
+		else //Impossible state: begins today, but ends BEFORE today. Assume cookie corrupted and we can't use this event
+			return 0;
+	}
+	else if(testDateObj == endDateObj)
+	{
+		if(testDateObj > startDateObj)
+			return 4;
+		else //Impossible state: ends today, but begins AFTER today.
+			return 0;
 	}
 	return false;
 },
 
 //input: currentdate 
-getCookie: function(date) { //expected cookie: 20161201-12:55PM-20161203-2:00PM=Chores at Macy's House until 12:00PM-1-12-2016
+getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Chores at Macy's House until 12:00PM-1-12-2016
 	console.log("Date is " + date);
     var times = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
     var doc = document.cookie.split(';'); //splits string into array of strings separating by ';' character (Every ; found makes a new string)
@@ -349,11 +384,41 @@ getCookie: function(date) { //expected cookie: 20161201-12:55PM-20161203-2:00PM=
         while (cookie.charAt(0)==' ') { //remove all white-space from beginning of string
             cookie = cookie.substring(1);
         }
+		var cookieParts = cookie.split('-'); //expect "20161201","12PM","20161203","2:00PM=Chores at Macy's House until 12:00PM","1","12","2016"
 		//console.log(module.exports.checkDateWithinRange);
-		if(module.exports.checkDateWithinRange(date,cookie.substring(0,8) + "-" + cookie.substring(14,22)))
-			console.log("Current day is within range");
-		else
-			console.log("Day outside of range");
+		var dateWithinRange = module.exports.checkDateWithinRange(date,cookieParts[0] + "-" + cookieParts[2]);
+		switch(dateWithinRange)
+		{
+			case 1: //date IS range
+				console.log("Current day is entire range");
+				break;
+			case 2: //date within range, exclude end-points
+				console.log("Current day is within range");
+				break;
+			case 3: //date begins range
+				console.log("Current day begins range");
+				break;
+			case 4: //date ends range
+				console.log("Current day ends range");
+				break;
+			default:
+				console.log("Day outside of range");
+				break;
+		}
+			//if today lies within the date range of event
+			
+			
+			//alternate:
+			//if start date before today, pick 12AM as start time
+			//if end date after today, pick 11PM as end time
+			//fill range between start and end time with event
+			
+			
+			//we know event goes today, now we check how long it goes for today
+			//read in the end time and see if it ends some time today
+			//var endInfo = cookie.substring(14,)
+		
+			
 		console.log("Cookie without whitespace: " + cookie); //example: 11012016-12AM-1475718170273=named event at the location for entered duration
         if(cookie.includes(date)){//if the given date is in the string for the cookie, read further
           var crumb = cookie.split('='); //2 parts: 11012016-12AM-1475718170273 //and: named event at the location for entered duration
