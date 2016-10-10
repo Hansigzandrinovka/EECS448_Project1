@@ -1,3 +1,7 @@
+//Much help to W3Schools for sorting out documentation issues:
+//http://www.w3schools.com/jsref/jsref_obj_date.asp
+
+
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var test = require('./test.js');
 
@@ -205,14 +209,13 @@ setCookie: function(date, time){
   var arrayOfParts = endTime.split('-'); //expect 4 parts, "12:00PM","1","12","2016"
   var time2 = arrayOfParts[0].split(':'); //expect 2 parts, "12" (hours), "00PM" (minutes)
   min_ampm = time2[1].split('PM'); //expect 2 parts, "00","PM"
+  var actualHours = Number(time2[0]);
   if(min_ampm) //if read in PM correctly, we can add 12 hours unless is 12:00
   {
 	  min_ampm[1] = "PM";
-	  time2[0] = Number(time[0]); //add 12 hours if in PM mode
-	  if(time2[0] == 12)
-		  time2[0] = 12;
-	  else
-		  time2[0] = time2[0] + 12;
+	  //add 12 hours if in PM mode unless is 12:00PM (noon)
+	  if(actualHours != 12)
+		  actualHours += 12;
   }
   else //otw either read AM or bad input
   {
@@ -223,31 +226,51 @@ setCookie: function(date, time){
   }
 	  
   console.log("Interpreted Time: y" + Number(arrayOfParts[3]) + "m" + Number(arrayOfParts[1]) + "d" + Number(arrayOfParts[2]) + "h" + Number(time2[0]) + "m" + Number(min_ampm[0]));
-  var givenDate = new Date(Number(arrayOfParts[3]),Number(arrayOfParts[1]) - 1,Number(arrayOfParts[2]),Number(time2[0]),Number(min_ampm[0]));  
+  //var givenDate = new Date(Number(arrayOfParts[3]),Number(arrayOfParts[1]) - 1,Number(arrayOfParts[2]),Number(time2[0]),Number(min_ampm[0]));  
   //arrayOfParts[3] is year, arrayOfParts[2] is Day, arrayOfParts[1] is Month, time[0] is hours, min_ampm[0] is seconds
-  console.log("Created a new Date " + givenDate);
-  var id_extension = zeroPad(arrayOfParts[3],4) + zeroPad(arrayOfParts[1],2) + zeroPad(arrayOfParts[2],2) + "-" + time[0] + ":" + min_ampm[0] + "" + min_ampm[1];
+  var id_extension =  module.exports.zeroPad2(arrayOfParts[1],2) + module.exports.zeroPad2(arrayOfParts[2],2) + module.exports.zeroPad2(arrayOfParts[3],4) + "-" + time[0] + ":" + min_ampm[0] + "" + min_ampm[1];
+  //example output: 12032016-2:00PM for december 3rd 2016 at 2:00 PM
   var id = date+"-"+time+"-"+id_extension+"-"+new Date().getTime();
+  //ex 20161201-12:55PM-20161203-2:00PM for an event from 12:55PM on the 1st of dec 2016 to the 3rd of dec 2016 at 2:00PM
   console.log("Cookie ID is " + id);
   
   var content = name+" at "+location+" until "+endTime;// create cookie content
+  
+  //now decide if we're setting expiration date to after event (if later than NOW) or to NOW (if before now)
   var d = new Date();
-  d.setTime(d.getTime() + (30*24*60*60*1000)) //current time plus 30 days but could be event date.
-  var expires = "expires=" + d.toGMTString();
-  document.cookie = id+"="+content+"; "+expires;// create cookie
-    window.location.reload();
-	console.log("setCookie returning 'content': " + content);
+  var eventDate = new Date(Number(arrayOfParts[3]),Number(arrayOfParts[1]) - 1,Number(arrayOfParts[2]),Number(time2[0]),Number(min_ampm[0])); //build the date for our event
+  var time_difference = eventDate.getMilliseconds() - d.getMilliseconds(); //if positive, event happens after NOW
+  if(time_difference > 0)
+  {
+	  console.log("Using Event's time for expire date");
+	  d = eventDate;
+  }
+  d.setTime(d.getTime() + (30*24*60*60*1000)); //current time plus 30 days but could be event date.
+  eventDate.setTime(d.getTime() + (30*24*60*60*1000));
+  var expires = "expires=" + d.toGMTString();  
+  
+  document.cookie = id+"="+content+"; "+expires;// create cookie, expect: 20161201-12:55PM-20161203-2:00PM=Chores at Macy's House until 12:00PM-1-12-2016;expires= (some time value in GMT) (NOTE: expires will not be shown if you view the cookie)
+  window.location.reload();
+  //console.log("setCookie returning 'content': " + content);
   return content;// return cookie content to be displayed in day view. ex output: "a at b for c"
 },
+
+//re-copying ZeroPad method to bring into current scope (whatever current scope is)
+//takes a number and adds '0's to beginning until it reaches the length specified in "places"
+//inputs: Number num, Number places
+zeroPad2: function(num, places) {
+  var zero = places - num.toString().length + 1;
+  return Array(+(zero > 0 && zero)).join("0") + num;
+},//http://stackoverflow.com/questions/2998784/how-to-output-integers-with-leading-zeros-in-javascript#2998822
 
 //deletes a cookie of a particular ID by setting its cookie expiration date to the day before today
 deleteCookie: function(id){
   var d = new Date();;
   d.setTime(d.getTime() + (-1*24*60*60*1000))
   var expires = "expires=" + d.toGMTString();
-  alert("Old cookie: " + document.cookie);
+  //alert("Old cookie: " + document.cookie);
   document.cookie = id+"="+""+"; "+expires;
-  alert("New cookie: " + document.cookie);
+  //alert("New cookie: " + document.cookie);
     window.location.reload();
 },
 
@@ -281,15 +304,56 @@ getLastView: function(){
     }
 },
 
-getCookie: function(date) {
+//inputs:
+	//date is the current date expressed in getCookie: 01072016 is Jan 1st, 2016
+	//range is the date range retrieved from the cookie with times removed: 12012016-12032016 for the 1st-3rd of Dec 2016 
+checkDateWithinRange: function(date,range)
+{
+	console.log("Check date in range: overall string: " + range);
+	//convert date to an actual date
+	var startDate = range.substring(0,8); //takes first 8 characters to get first date ie 20161201
+	//console.log("Start string: " + startDate);
+	var endDate = range.substring(9,17); //takes 8 characters of 2nd date ie 20161203
+	//console.log("End string: " + endDate);
+	//console.log("New range: " + range);
+	//check if year is within range
+	var startDateObj = new Date();
+	//var testOutput = [Number(startDate.substring(4,8)),Number(startDate.substring(2,4)) - 1,Number(startDate.substring(0,2))];
+	//console.log("Date array: " + testOutput);
+	startDateObj.setFullYear(Number(startDate.substring(4,8)),Number(startDate.substring(0,2)) - 1,Number(startDate.substring(2,4)));
+	//converts the start date to a Date object so we can compare it to other date objects with std operations >=<
+	var endDateObj = new Date();
+	endDateObj.setFullYear(Number(endDate.substring(4,8)),Number(endDate.substring(0,2)) - 1,Number(endDate.substring(2,4)));
+	
+	var testDateObj = new Date();
+	testDateObj.setFullYear(Number(date.substring(4,8)),Number(date.substring(0,2)) - 1,Number(date.substring(2,4)));
+	console.log("Start date " + startDateObj);
+	console.log("End date " + endDateObj);
+	console.log("Test date " + testDateObj);
+	if(testDateObj >= startDate && testDateObj <= endDate)
+	{
+		return true;
+	}
+	return false;
+},
+
+//input: currentdate 
+getCookie: function(date) { //expected cookie: 20161201-12:55PM-20161203-2:00PM=Chores at Macy's House until 12:00PM-1-12-2016
+	console.log("Date is " + date);
     var times = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
     var doc = document.cookie.split(';'); //splits string into array of strings separating by ';' character (Every ; found makes a new string)
-    console.log("Getting cookie: " + doc); //example output: 11012016-12AM-1475718170273=named event at the location for entered duration, 10302016-12AM-1475718569011=a at b for c, 07022016-12AM-1475719434959=a at b for c
+	//every cookie ends in a ';', so this separates cookies
+    console.log("Getting cookies: " + doc); //example output: 11012016-12AM-1475718170273=named event at the location for entered duration, 10302016-12AM-1475718569011=a at b for c, 07022016-12AM-1475719434959=a at b for c
 	for(var i=0; i<doc.length; i++) { //for each component cookie, remove white space, then read in details information and display on DayView
         var cookie = doc[i];
-        while (cookie.charAt(0)==' ') { //remove all white-space
+        while (cookie.charAt(0)==' ') { //remove all white-space from beginning of string
             cookie = cookie.substring(1);
         }
+		//console.log(module.exports.checkDateWithinRange);
+		if(module.exports.checkDateWithinRange(date,cookie.substring(0,8) + "-" + cookie.substring(14,22)))
+			console.log("Current day is within range");
+		else
+			console.log("Day outside of range");
 		console.log("Cookie without whitespace: " + cookie); //example: 11012016-12AM-1475718170273=named event at the location for entered duration
         if(cookie.includes(date)){//if the given date is in the string for the cookie, read further
           var crumb = cookie.split('='); //2 parts: 11012016-12AM-1475718170273 //and: named event at the location for entered duration
