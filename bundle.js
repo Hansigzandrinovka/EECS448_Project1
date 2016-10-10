@@ -317,7 +317,7 @@ getLastView: function(){
 //some minor changes from http://stackoverflow.com/questions/13291661/check-if-a-date-within-in-range
 checkDateWithinRange: function(date,range)
 {
-	console.log("Check date in range: overall string: " + range);
+	//console.log("Check date in range: overall string: " + range);
 	var today = new Date();
 	today = new Date(today.getFullYear(),today.getMonth(),today.getDate()); //zeros out any hour,minute,second values
 	//convert date to an actual date
@@ -342,34 +342,38 @@ checkDateWithinRange: function(date,range)
 //	console.log("Before start: " + (testDateObj <= startDateObj));
 //	console.log("After end: " + (testDateObj >= endDateObj));
 //	console.log("Before end: " + (testDateObj <= endDateObj));
-//	console.log("Final result: " + ((testDateObj >= startDate) && (testDateObj <= endDateObj)));
+//	console.log("Final result: " + ((testDateObj >= startDateObj) && (testDateObj <= endDateObj)));
 //	console.log("Start date " + startDateObj);
 //	console.log("End date " + endDateObj);
 //	console.log("Test date " + testDateObj);
-	console.log((true) && (false));
+//	console.log(testDateObj.getTime() == startDateObj.getTime()); //FOR some arbitrary reason, <,>,<=,>= work for Date objects,
+			//but to test equality, you need to get time. Probably so that object equality can be tested.
+	//console.log(testDateObj > startDateObj);
+	//console.log(testDateObj < startDateObj);
 	if((testDateObj > startDateObj) && (testDateObj < endDateObj))
 		//To decide if event is today, we check if it started at or before today (we don't care what time yet)
 		//and that it hasn't ended yet (it ends sometime at or after today)
 	{
 		return 2;
 	}
-	else if(testDateObj == startDateObj) //starts today, so unless bad data, we're keeping this event
+	else if(testDateObj.getTime() == startDateObj.getTime()) //starts today, so unless bad data, we're keeping this event
 	{
-		if(testDateObj == endDateObj)
+		//console.log("Test is equal to start");
+		if(testDateObj.getTime() == endDateObj.getTime())
 			return 1;
 		else if(testDateObj < endDateObj)
 			return 3;
 		else //Impossible state: begins today, but ends BEFORE today. Assume cookie corrupted and we can't use this event
 			return 0;
 	}
-	else if(testDateObj == endDateObj)
+	else if(testDateObj.getTime() == endDateObj.getTime())
 	{
 		if(testDateObj > startDateObj)
 			return 4;
 		else //Impossible state: ends today, but begins AFTER today.
 			return 0;
 	}
-	return false;
+	return 0;
 },
 
 //input: currentdate 
@@ -377,31 +381,53 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 	console.log("Date is " + date);
     var times = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
     var doc = document.cookie.split(';'); //splits string into array of strings separating by ';' character (Every ; found makes a new string)
-	//every cookie ends in a ';', so this separates cookies
-    console.log("Getting cookies: " + doc); //example output: 11012016-12AM-1475718170273=named event at the location for entered duration, 10302016-12AM-1475718569011=a at b for c, 07022016-12AM-1475719434959=a at b for c
+	//every cookie ends in a ';', so this separates events
+    //console.log("Getting cookies: " + doc); //example output: 11012016-12AM-1475718170273=named event at the location for entered duration, 10302016-12AM-1475718569011=a at b for c, 07022016-12AM-1475719434959=a at b for c
 	for(var i=0; i<doc.length; i++) { //for each component cookie, remove white space, then read in details information and display on DayView
         var cookie = doc[i];
         while (cookie.charAt(0)==' ') { //remove all white-space from beginning of string
             cookie = cookie.substring(1);
         }
-		var cookieParts = cookie.split('-'); //expect "20161201","12PM","20161203","2:00PM=Chores at Macy's House until 12:00PM","1","12","2016"
+		var cookieParts = cookie.split('-'); //expect "20161201","12PM","20161203","2:00PM","(time_stamp)=Chores at Macy's House until 12:00PM","1","12","2016"
 		//console.log(module.exports.checkDateWithinRange);
 		var dateWithinRange = module.exports.checkDateWithinRange(date,cookieParts[0] + "-" + cookieParts[2]);
+		//console.log("Date within Range return: " + dateWithinRange);
 		switch(dateWithinRange)
 		{
-			case 1: //date IS range
+			case 1: //date IS range, so find start and end times, then populate between
 				console.log("Current day is entire range");
+				var startTime = cookieParts[1]; //expect "12PM"
+				var endTime = cookieParts[3]; //expect "2:00PM"
+				endTime = endTime.split(':'); //expect "2","00PM"
+				if(endTime[1].split('P').length == 2) //if split can't find the character, it makes an array, then puts everything in first element
+				{
+					console.log("End time is in PM");
+					endTime[1] = "PM" //now we can say start is "12PM", end is "2PM"
+					endTime = endTime[0] + endTime[1]; //convert array back to string, expect "2PM"
+					//the intention here is to do similarly to original getCookie code, but for every time in array between start time and end time
+					console.log("For sanity sake, end time is " + endTime);
+				}	
+				else if(endTime.split('A').length == 2) //otw, if we can get AM string
+				{
+					console.log("Start time is in AM");
+				}
+				else
+				{
+					console.log("Bad input");
+				}
+					
+				
 				break;
-			case 2: //date within range, exclude end-points
+			case 2: //date within range, exclude end-points... so we just populate entire day with event
 				console.log("Current day is within range");
 				break;
-			case 3: //date begins range
+			case 3: //date begins range, so find start time and populate everything after
 				console.log("Current day begins range");
 				break;
-			case 4: //date ends range
+			case 4: //date ends range, so find end time, then populate everything before
 				console.log("Current day ends range");
 				break;
-			default:
+			default: //date outside of range, so ignore it
 				console.log("Day outside of range");
 				break;
 		}
@@ -419,7 +445,7 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 			//var endInfo = cookie.substring(14,)
 		
 			
-		console.log("Cookie without whitespace: " + cookie); //example: 11012016-12AM-1475718170273=named event at the location for entered duration
+		//console.log("Cookie without whitespace: " + cookie); //example: 11012016-12AM-1475718170273=named event at the location for entered duration
         if(cookie.includes(date)){//if the given date is in the string for the cookie, read further
           var crumb = cookie.split('='); //2 parts: 11012016-12AM-1475718170273 //and: named event at the location for entered duration
           var content = crumb[1];//named event at the location for entered duration
