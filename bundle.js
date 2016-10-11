@@ -382,30 +382,67 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
     var times = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
     var doc = document.cookie.split(';'); //splits string into array of strings separating by ';' character (Every ; found makes a new string)
 	//every cookie ends in a ';', so this separates events
-    //console.log("Getting cookies: " + doc); //example output: 11012016-12AM-1475718170273=named event at the location for entered duration, 10302016-12AM-1475718569011=a at b for c, 07022016-12AM-1475719434959=a at b for c
 	for(var i=0; i<doc.length; i++) { //for each component cookie, remove white space, then read in details information and display on DayView
-        var cookie = doc[i];
+        var cookie = doc[i]; //ex 12012016-9AM-12022016-9:00AM-(time_stamp)=Party Time at Sheridants until 9:00AM-12-02-2016
         while (cookie.charAt(0)==' ') { //remove all white-space from beginning of string
             cookie = cookie.substring(1);
         }
-		var cookieParts = cookie.split('-'); //expect "20161201","12PM","20161203","2:00PM","(time_stamp)=Chores at Macy's House until 12:00PM","1","12","2016"
+		var cookieParts = cookie.split('-'); //expect "12012016","12PM","12032016","2:00PM","(time_stamp)=Chores at Macy's House until 12:00PM","1","12","2016"
 		//console.log(module.exports.checkDateWithinRange);
-		var dateWithinRange = module.exports.checkDateWithinRange(date,cookieParts[0] + "-" + cookieParts[2]);
+		var dateWithinRange = module.exports.checkDateWithinRange(date,cookieParts[0] + "-" + cookieParts[2]); //defined above, determines where current date falls within/without range of cookie
 		//console.log("Date within Range return: " + dateWithinRange);
 		switch(dateWithinRange)
 		{
 			case 1: //date IS range, so find start and end times, then populate between
 				console.log("Current day is entire range");
+				var crumb = cookie.split('='); //expect "12012016-9AM-12032016-9:00AM-(time_stamp)","Chores at Macy's House until 12:00PM"
+				var content = crumb[1]; //expect "Chores at Macy's House until 12:00PM"
+				var id = crumb[0]; //11012016
 				var startTime = cookieParts[1]; //expect "12PM"
 				var endTime = cookieParts[3]; //expect "2:00PM"
 				endTime = endTime.split(':'); //expect "2","00PM"
-				if(endTime[1].split('P').length == 2) //if split can't find the character, it makes an array, then puts everything in first element
+				if(endTime[1].split('P').length == 2) //if split can't find the character, it makes an array of length one with everything in element 0
 				{
 					console.log("End time is in PM");
+					
+					//$('#4AM').append("Testing 123 Testing<br /><br />"); //proof that at one point, 4AM was buggy from bad ID
+					
 					endTime[1] = "PM" //now we can say start is "12PM", end is "2PM"
 					endTime = endTime[0] + endTime[1]; //convert array back to string, expect "2PM"
 					//the intention here is to do similarly to original getCookie code, but for every time in array between start time and end time
-					console.log("For sanity sake, end time is " + endTime);
+					//console.log("For sanity sake, end time is " + endTime);
+					//iterate through 'times' passing through start and end time, creating events for each
+					var match = startTime; //initially 12PM
+					var pastStart = false;
+					var x = times.length;
+					console.log("For looping to test new getCookie: starting at " + startTime);
+					for(var i = 0; i < x; i++)
+					{
+						
+						if(!pastStart && (times[i] == startTime)) //keep going until we hit start, then start creating events
+						{
+							pastStart = true;
+							console.log("Starting at time: " + times[i]);
+							//create first event and now past start
+							$('#'+times[i]).append(content+'<br><br>'); //add details for this event to the view for current time
+							$('#rem'+i).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+						}
+						else if(pastStart) //we have passed start, so keep watching until end time
+						{
+							if(times[i] != endTime) //if we have not reached end, place an event reference
+							{
+								console.log("Adding content to " + times[i] + " time: " + content);
+								$('#'+times[i]).append(content+'<br><br>'); //add details for this event to the view for current time
+								$('#rem'+i).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+							}
+							else //end when we hit stop time
+							{
+								pastStart = false;
+								console.log("Found end time " + times[i]);
+							}
+						}
+					}
+					console.log("Finished iterating for event " + content);
 				}	
 				else if(endTime.split('A').length == 2) //otw, if we can get AM string
 				{
@@ -446,16 +483,16 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 		
 			
 		//console.log("Cookie without whitespace: " + cookie); //example: 11012016-12AM-1475718170273=named event at the location for entered duration
-        if(cookie.includes(date)){//if the given date is in the string for the cookie, read further
-          var crumb = cookie.split('='); //2 parts: 11012016-12AM-1475718170273 //and: named event at the location for entered duration
-          var content = crumb[1];//named event at the location for entered duration
-          var crumb2 = crumb[0].split('-');//11012016 &: 12AM &: 1475718170273 :(3 parts)
-          var time = crumb2[1]; //12AM
-          var id = crumb[0]; //11012016
-          $('#'+time).append(content+'<br><br>'); //add details for this event to that view
-          var remNum = times.indexOf(time)+1;
-          $('#rem'+remNum).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
-        }
+//       if(cookie.includes(date)){//if the given date is in the string for the cookie, read further
+//          var crumb = cookie.split('='); //2 parts: 11012016-12AM-1475718170273 //and: named event at the location for entered duration
+//          var content = crumb[1];//named event at the location for entered duration
+//          var crumb2 = crumb[0].split('-');//11012016 , 12AM , 1475718170273 :(3 parts)
+//          var time = crumb2[1]; //12AM
+//          var id = crumb[0]; //11012016
+//          $('#'+time).append(content+'<br><br>'); //add details for this event to that view
+//          var remNum = times.indexOf(time)+1;
+//          $('#rem'+remNum).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+//        }
       }
     }
 
