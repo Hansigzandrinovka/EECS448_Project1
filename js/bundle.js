@@ -1,4 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var test = require('./test.js');
 
 window.cookies = require('./CookieMonster.js');
 
@@ -309,19 +310,32 @@ setCookie: function(date, time){
   var expires = "expires=" + d.toGMTString();
 
   var name=prompt("Please enter the name of the Event:","");//set name
+  if(!name) //user didn't put in a name, so assume they don't want to create an event
+  {
+    return "";
+  }
   var location=prompt("Please enter the location: ","");//set location
+  if(!location)
+  {
+    return "";
+  }
   var content = name+" at "+location;// create cookie content
   
-  var duration = 0;
-  while(Number(duration) < 1 || isNaN(Number(duration)))
+  var endTime = 0;
+  while(Number(endTime) < 1 || isNaN(Number(endTime)))
   {
-  	duration=prompt("Please enter duration in minutes: ","30"); //set duration
+  	endTime=prompt("Please enter event ending time: ","12:00PM"); //set duration
+  }
+  var endTime=prompt("Please enter end date: ","1-12-2016"); //set ending date and time
+  if(!endTime)
+  {
+    return "";
   }
 
-  var repetition = 4;
+  var repetition = 5;
   while(isNaN(Number(repetition)) || Number(repetition) < 0 || Number(repetition) > 3)
   {
-	repetition=prompt("0 - no repeat\n1 - repeat daily\n2 - repeat weekly\n3 - repeat monthly","0"); //set repeat
+	repetition=prompt("0 - no repeat\n1 - repeat daily\n2 - repeat weekly\n3 - repeat monthly\n4 - repeat biweekly","0"); //set repeat
   }
 
   var eventDate = new Date();
