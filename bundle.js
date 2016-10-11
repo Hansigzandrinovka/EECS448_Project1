@@ -467,9 +467,7 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 						}
 							
 						endTime[0] = "" + (Number(endTime[0]) + 1); //hopefully returns String, increments the current hour by 1
-						//console.log("Incrementing time to " + endTime[0]);
 					}
-					
 				}
 				else //guard against potential malicious/corrupt input
 				{
@@ -484,7 +482,7 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 				var pastStart = false;//becomes true when we hit the first instance
 				var x = times.length;
 				//console.log("For looping to test new getCookie: starting at " + startTime + ", ending at " + endTime);
-				for(var j = 0; j < x; j++)
+				for(var j = 0; j < x; j++) //iterate through times until we hit start, then iterate and populate until we hit end
 				{
 					
 					if(!pastStart && (times[j] == startTime)) //keep going until we hit start, then start creating events
@@ -527,7 +525,7 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 				{
 					//console.log("Adding content to " + times[j] + " time: " + content);
 					$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
-					$('#rem'+j).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+					$('#rem'+(j + 1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
 				}
 				break;
 			case 3: //date begins range, so find start time and populate everything after
@@ -545,50 +543,87 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 				{
 					if(times[j] == startTime)
 						break;
-					//console.log("Adding content to " + times[j] + " time: " + content);
-					//$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
-					//$('#rem'+j).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
 				}
 				if(j == times.length) //if invalid input data, skip this event
 					continue;
+				//after finding start time, then we start populating events until we hit end
 				for(; j < x; j++) //traverse through rest of loop creating events (we don't define j because we are using the j from last for loop)
 				{
 					$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
-					$('#rem'+j).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+					$('#rem'+(j + 1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
 				}
 				break;
 			case 4: //date ends range, so find end time, then populate everything before
 				console.log("Current day ends range");
+				var crumb = cookie.split('='); //expect "12012016-9AM-12032016-9:00AM-(time_stamp)","Chores at Macy's House until 12:00PM"
+				var content = crumb[1]; //expect "Chores at Macy's House until 12:00PM"
+				var id = crumb[0]; //11012016
+				var startTime = cookieParts[1]; //expect "12PM"
+				var endTime = cookieParts[3]; //expect "2:00PM"
+				endTime = endTime.split(':'); //expect "2","00PM"
+				
+				if(endTime[1].split('P').length == 2) //if split can't find the character, it makes an array of length one with everything in element 0
+				{
+					var minutesTrack = endTime[1].split('P'); //expect "30","M"
+					minutesTrack = Number(minutesTrack[0]); //expect 30
+					if(minutesTrack >= 30) //if the event goes over, say, 5:30, we want it to "end" at 6, so that it will display in the 5:00 time slot.
+					{
+						//take the current end time, increment by 1, then rebuild string
+						if(endTime[0] == "12") //12:00PM directly precedes 1:00PM
+						{
+							endTime[0] = "0";
+						}
+							
+						else if(endTime[0] == "11") //if it ends at 11:30+ PM, it essentially goes into the next day
+						{
+							endTime[0] = "13";
+						}
+							
+						endTime[0] = "" + (Number(endTime[0]) + 1); //hopefully returns String
+					}
+					endTime[1] = "PM"; //now we can say start is "12PM", end is "2PM"
+				}
+				else if(endTime[1].split('A').length == 2) //otw, if we can get AM string
+				{
+					var minutesTrack = endTime[1].split('A'); //expect "30","M"
+					endTime[1] = "AM";
+					minutesTrack = Number(minutesTrack[0]); //expect 30
+					if(minutesTrack >= 30) //if the event goes over, say, 5:30, we want it to "end" at 6, so that it will display in the 5:00 time slot.
+					{
+						//take the current end time, increment by 1, then rebuild string
+						if(endTime[0] == "12") //12:00AM directly precedes 1:00AM
+						{
+							endTime[0] = "0";
+						}
+						else if(endTime[0] == "11") //if it ends at 11:30 AM, it stretches to 12:00PM
+						{
+							endTime[1] = "PM";
+						}
+							
+						endTime[0] = "" + (Number(endTime[0]) + 1); //hopefully returns String, increments the current hour by 1
+					}
+				}
+				else //otw, corrupted data, skip this event
+				{
+					continue;
+				}
+				endTime = endTime[0] + endTime[1];
+				console.log("Sought end time is: " + endTime);
+				for(var j = 0; j < x; j++) //loop until we hit the end point, adding events as we go, then stop after that
+				{
+					if(times[j] == endTime)
+						break;
+					//console.log("Adding content to " + times[j] + " time: " + content);
+					$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+					$('#rem'+(j + 1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+				}
+				//now any times with minutes greater than 30 have their periods stretching into the next hour bracket.
+				
 				break;
 			default: //date outside of range, so ignore it
 				console.log("Day outside of range");
 				break;
 		}
-			//if today lies within the date range of event
-			
-			
-			//alternate:
-			//if start date before today, pick 12AM as start time
-			//if end date after today, pick 11PM as end time
-			//fill range between start and end time with event
-			
-			
-			//we know event goes today, now we check how long it goes for today
-			//read in the end time and see if it ends some time today
-			//var endInfo = cookie.substring(14,)
-		
-			
-		//console.log("Cookie without whitespace: " + cookie); //example: 11012016-12AM-1475718170273=named event at the location for entered duration
-//       if(cookie.includes(date)){//if the given date is in the string for the cookie, read further
-//          var crumb = cookie.split('='); //2 parts: 11012016-12AM-1475718170273 //and: named event at the location for entered duration
-//          var content = crumb[1];//named event at the location for entered duration
-//          var crumb2 = crumb[0].split('-');//11012016 , 12AM , 1475718170273 :(3 parts)
-//          var time = crumb2[1]; //12AM
-//          var id = crumb[0]; //11012016
-//          $('#'+time).append(content+'<br><br>'); //add details for this event to that view
-//          var remNum = times.indexOf(time)+1;
-//          $('#rem'+remNum).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
-//        }
       }
     }
 
