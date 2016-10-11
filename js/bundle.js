@@ -157,17 +157,16 @@ function loadWeek(year,month,week,day){
     }
     end.setDate(loopDay-1);
   }
-  else //Not week 1
+else //Not week 1
   {
     begin.setDate(day);
     begin.setFullYear(year);
     begin.setMonth(month-1);
     var loopMonth = month;
-
-    for(var d = 1; d<=7;d++)
+    for(var d = 1; d <= 7; d++)
     {
       $('#d'+d).html(loopMonth+'/'+loopDay);
-      if((month == 12) && (week > 2) && (loopDay < 8)) //December and week goes into next year
+      if(month == 12 && week > 2 && loopDay < 8) //December and week goes into next year
       {
         $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+(year+1)+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
       }
@@ -176,9 +175,9 @@ function loadWeek(year,month,week,day){
         $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
       }
       loopDay++;
-      if(loopDay > Date.getDaysInMonth(year, loopMonth-1))
+      if(loopDay > Date.getDaysInMonth(year,loopMonth-1))
       {
-        loopMonth = 1;
+        loopDay = 1;
         if(loopMonth == 12)
         {
           loopMonth = 1;
@@ -199,7 +198,8 @@ function loadWeek(year,month,week,day){
       }
     }
     end.setDate(loopDay-1);
-  }  
+  }
+
   $('#title').html(begin.toString('MMMM d')+' - '+end.toString('MMMM d'));
   var previous = Date.parse(begin.addDays(-7).toString('MMMM d yyyy'));;
   var next = Date.parse(end.addDays(1).toString('MMMM d yyyy'));
