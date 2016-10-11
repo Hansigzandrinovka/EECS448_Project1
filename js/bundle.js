@@ -64,7 +64,7 @@ function loadMonth(year,month){
     if(prevMonth==0){prevMonth=12;prevYear--;}
     $('#next').attr('onclick','goToSamePage(\''+'month.html#'+nextYear+zeroPad(nextMonth,2)+'\')');
     $('#previous').attr('onclick','goToSamePage(\''+'month.html#'+prevYear+zeroPad(prevMonth,2)+'\')');
-    $('#back').attr('onclick','goToNewPage(\''+'year.html#'+prevYear+'\')');
+    $('#back').attr('onclick','goToNewPage(\''+'year.html#'+nextYear+'\')');
 	var offset = m.getDay();
 	var days = Date.getDaysInMonth(year,month-1);
 	for(w=1;w<=6;w++){
@@ -262,7 +262,7 @@ function loadDay(year,month,week,day){
     var offset = startOfWeek.getDay();
     startOfWeek.addDays(0-offset);
     $('#back').attr('onclick','goToNewPage(\''+'week.html#'+year.toString()+zeroPad(month.toString(),2)+week+zeroPad(startOfWeek.getDate(),2)+'\')');
-    var times = ['12AM','1230AM','1AM','130AM','2AM','230AM','3AM','330AM','4AM','430AM','5AM','530AM','6AM','630AM','7AM','730AM','8AM','830AM','9AM','930AM','10AM','1030AM','11AM','1130AM','12PM','1230PM','1PM','130PM','2PM','230PM','3PM','330PM','4PM','430PM','5PM','530PM','6PM','630PM','7PM','730PM','8PM','830PM','9PM','930PM','10PM','1030PM','11PM','1130PM'];
+      var times = ['12AM','1230AM','1AM','130AM','2AM','230AM','3AM','330AM','4AM','430AM','5AM','530AM','6AM','630AM','7AM','730AM','8AM','830AM','9AM','930AM','10AM','1030AM','11AM','1130AM','12PM','1230PM','1PM','130PM','2PM','230PM','3PM','330PM','4PM','430PM','5PM','530PM','6PM','630PM','7PM','730PM','8PM','830PM','9PM','930PM','10PM','1030PM','11PM','1130PM'];
     for(x=1;x<=48;x++){
         $('#add'+x).attr('onclick','cookies.setCookie(\''+window.date+'\',\''+times[x-1]+'\')');
     }
@@ -320,22 +320,32 @@ setCookie: function(date, time){
     return "";
   }
   var content = name+" at "+location;// create cookie content
-  
-  var endTime = 0;
-  while(Number(endTime) < 1 || isNaN(Number(endTime)))
+
+  var duration = 0;
+  while(Number(duration) < 1 || isNaN(Number(duration)))
   {
-  	endTime=prompt("Please enter event ending time: ","12:00PM"); //set duration
+    duration=prompt("Please enter duration in minutes: ","30"); //set duration
   }
-  var endTime=prompt("Please enter end date: ","1-12-2016"); //set ending date and time
+  
+/*  var endTime = endTime=prompt("Please enter event ending time: ","12:00PM"); //set duration
   if(!endTime)
   {
     return "";
   }
-
+    var noColonTime = endTime.split(':'); //expect 2 parts, "12" (hours), "00PM" (minutes)
+    var noXMTime = noColonTime[1].split('PM'); //expect 2 parts, "00","PM"
+    var pureTime = noColonTime[0].concat(noXMTime[0]);
+    var duration = (((Number(pureTime) - Number(time))*60)/100);
+  var endDate=prompt("Please enter end date: ","1-12-2016"); //set ending date
+  if(!endDate)
+  {
+    return "";
+  }
+*/
   var repetition = 5;
   while(isNaN(Number(repetition)) || Number(repetition) < 0 || Number(repetition) > 3)
   {
-	repetition=prompt("0 - no repeat\n1 - repeat daily\n2 - repeat weekly\n3 - repeat monthly\n4 - repeat biweekly","0"); //set repeat
+	repetition=prompt("0 - no repeat\n1 - repeat daily\n2 - repeat weekly\n3 - repeat biweekly\n4 - repeat monthly","0"); //set repeat
   }
 
   var eventDate = new Date();
@@ -368,7 +378,19 @@ setCookie: function(date, time){
 			eventDate.addDays(7);
 		}
 	}
-	else if(Number(repetition) == 3)
+  else if(Number(repetition) == 3)
+  {
+    for(var y = 0; y < 2; y++) //260
+    {
+      for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
+      {
+        id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)+x]+"-"+new Date().getTime();
+          document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+      }
+      eventDate.addDays(14);
+    }
+  }
+	else if(Number(repetition) == 4)
 	{
 		for(var y = 0; y < 2; y++) //60
 		{
@@ -409,7 +431,16 @@ setCookie: function(date, time){
 			eventDate.addDays(7);
 		}
 	}
-	else if(Number(repetition) == 3)
+  else if(Number(repetition) == 3)
+  {
+    for(var y = 0; y < 2; y++) //260
+    {
+      id = eventDate.toString('MMddyyyy')+"-"+time+"-"+new Date().getTime();
+        document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+      eventDate.addDays(14);
+    }
+  }
+	else if(Number(repetition) == 4)
 	{
 		for(var y = 0; y < 2; y++) //60
 		{
@@ -464,7 +495,7 @@ getLastView: function(){
 },
 
 getCookie: function(date) {
-    var times = ['12AM','1230AM','1AM','130AM','2AM','230AM','3AM','330AM','4AM','430AM','5AM','530AM','6AM','630AM','7AM','730AM','8AM','830AM','9AM','930AM','10AM','1030AM','11AM','1130AM','12PM','1230PM','1PM','130PM','2PM','230PM','3PM','330PM','4PM','430PM','5PM','530PM','6PM','630PM','7PM','730PM','8PM','830PM','9PM','930PM','10PM','1030PM','11PM','1130PM'];
+      var times = ['12AM','1230AM','1AM','130AM','2AM','230AM','3AM','330AM','4AM','430AM','5AM','530AM','6AM','630AM','7AM','730AM','8AM','830AM','9AM','930AM','10AM','1030AM','11AM','1130AM','12PM','1230PM','1PM','130PM','2PM','230PM','3PM','330PM','4PM','430PM','5PM','530PM','6PM','630PM','7PM','730PM','8PM','830PM','9PM','930PM','10PM','1030PM','11PM','1130PM'];
     var doc = document.cookie.split(';');
     for(var i=0; i<doc.length; i++) {
         var cookie = doc[i];
