@@ -188,10 +188,10 @@ setCookie: function(date, time){
   	duration=prompt("Please enter duration in minutes: ","30"); //set duration
   }
 
-  var repetition = 4;
-  while(isNaN(Number(repetition)) || Number(repetition) < 0 || Number(repetition) > 3)
+  var repetition = 5;
+  while(isNaN(Number(repetition)) || Number(repetition) < 0 || Number(repetition) > 4)
   {
-	repetition=prompt("0 - no repeat\n1 - repeat daily\n2 - repeat weekly\n3 - repeat monthly","0"); //set repeat
+	repetition=prompt("0 - no repeat\n1 - repeat daily\n2 - repeat weekly\n3 repeate biweekly\n4- repeat monthly","0"); //set repeat
   }
 
   var eventDate = new Date();
@@ -224,7 +224,19 @@ setCookie: function(date, time){
 			eventDate.addDays(7);
 		}
 	}
-	else if(Number(repetition) == 3)
+  else if(Number(repetition) == 3)
+  {
+    for(var y = 0; y < 2; y++) //260
+    {
+      for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
+      {
+        id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)+x]+"-"+new Date().getTime();
+          document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+      }
+      eventDate.addDays(14);
+    }
+  }
+	else if(Number(repetition) == 4)
 	{
 		for(var y = 0; y < 2; y++) //60
 		{
@@ -265,7 +277,16 @@ setCookie: function(date, time){
 			eventDate.addDays(7);
 		}
 	}
-	else if(Number(repetition) == 3)
+  else if(Number(repetition) == 3)
+  {
+    for(var y = 0; y < 2; y++) //260
+    {
+      id = eventDate.toString('MMddyyyy')+"-"+time+"-"+new Date().getTime();
+        document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+      eventDate.addDays(14);
+    }
+  }
+	else if(Number(repetition) == 4)
 	{
 		for(var y = 0; y < 2; y++) //60
 		{
