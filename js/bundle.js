@@ -213,7 +213,8 @@ function loadWeek(year,month,week,day){
     temp.setFullYear(previous.getYear()+1900);
     temp.setMonth(previous.getMonth());
     temp.setDate(1);
-    if((Date.getDaysInMonth(temp.getYear(),temp.getMonth()) > 29 && temp.getDay() == 6) || (Date.getDaysInMonth(temp.getYear(),temp.getMonth()) == 31 && temp.getDay() == 5))
+    if((Date.getDaysInMonth(temp.getYear(),temp.getMonth()) > 29 && temp.getDay() == 6) ||
+       (Date.getDaysInMonth(temp.getYear(),temp.getMonth()) == 31 && temp.getDay() == 5))
     {
       $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"6"+zeroPad(previous.getDate(),2)+'\')');
     }
@@ -229,12 +230,16 @@ function loadWeek(year,month,week,day){
   else if(week == 5) //If month only has 5 weeks, next week is week 1
   {
     var temp = new Date();
+    var targetMonth = month-1;
+    var newMonthWeek1 = "1";
     temp.setFullYear(year);
     temp.setMonth(month-1);
     temp.setDate(1);
-    if((Date.getDaysInMonth(year,month-1) < 30) || (Date.getDaysInMonth(year,month-1) == 30) && (temp.getDay() < 6) || (Date.getDaysInMonth(year,month-1) == 31) && (temp.getDay() < 5))
+    if((Date.getDaysInMonth(year,targetMonth) < 30) ||
+       (Date.getDaysInMonth(year,targetMonth) == 30) && (temp.getDay() < 6) ||
+       (Date.getDaysInMonth(year,targetMonth) == 31) &&(temp.getDay() < 5))
     {
-      $('#next').attr('onclick','goToSamePage(\''+'week.html#'+ (next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"1"+ zeroPad(next.getDate(),2)+'\')');
+      $('#next').attr('onclick','goToSamePage(\''+'week.html#'+ (next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+newMonthWeek1+ zeroPad(next.getDate(),2)+'\')');
     }
     else
     {
@@ -270,22 +275,36 @@ function loadDay(year,month,week,day){
 }
 
 $(document).ready(function(){
-    var page = document.location.href.match(/[^\/]+$/)[0];
-    page = page.substr(0,page.lastIndexOf('#'));
-    var url = window.location.href;
-    var id = url.substring(url.lastIndexOf('#') + 1);
-	switch(page){
-        case 'week.html':
-            loadWeek(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)),parseInt(id.substr(6,1)),parseInt(id.substr(7,2)));
-            break;
-        case 'month.html':
-            loadMonth(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)));
-            break;
+  //console.log("url is " + document.location.href);
+  var page = document.location.href.match(/[^\/]+$/)[0]; //seems to get the ending part of the current URL starting at current file
+  //IE Outputs month.html#201601 in month view Jan 2016
+  //console.log("Page variable is " + page);
+  page = page.substr(0,page.lastIndexOf('#')); //drops the extension "#201601"
+  console.log("Page changes to: " + page) ;
+  var url = window.location.href; //full URL
+  //console.log("URL is " + url);
+  var id = url.substring(url.lastIndexOf('#') + 1); //holds current year/month/day information "201601"
+    //a little redundant considering page had extension before...
+  //console.log("ID is " + id);
+
+  // [Year][Year][Year][Year][month][month][week][day][day]
+  var yearAsInt = parseInt(id.substr(0,4));
+  var monthAsInt = parseInt(id.substr(4,2));
+  var weekAsInt = parseInt(id.substr(6,1));
+  var dayAsInt = parseInt(id.substr(7,2));
+	
+  switch(page){
         case 'year.html':
             loadYear(id);
             break;
+        case 'month.html':
+            loadMonth(yearAsInt,monthAsInt);
+            break;
+        case 'week.html':
+            loadWeek(yearAsInt,monthAsInt,weekAsInt,dayAsInt);
+            break;
         case 'day.html':
-            loadDay(parseInt(id.substr(0,4)),parseInt(id.substr(4,2)),parseInt(id.substr(6,1)),parseInt(id.substr(7,2)));
+            loadDay(yearAsInt,monthAsInt,weekAsInt,dayAsInt);
             break;
         case 'start.html':
             break;
