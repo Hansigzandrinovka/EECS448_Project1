@@ -208,27 +208,32 @@ setCookie: function(date, time){
   //try to build a Date using information:
   var arrayOfParts = endTime.split('-'); //expect 4 parts, "12:00PM","1","12","2016"
   var time2 = arrayOfParts[0].split(':'); //expect 2 parts, "12" (hours), "00PM" (minutes)
-  min_ampm = time2[1].split('PM'); //expect 2 parts, "00","PM"
-  var actualHours = Number(time2[0]);
-  if(min_ampm) //if read in PM correctly, we can add 12 hours unless is 12:00
+  min_ampm = time2[1].split('P'); //expect 2 parts, "00","M"
+  var actualHours = Number(time2[0]); //expect a number of hours
+  if(min_ampm.length == 2) //if read in PM correctly, we can add 12 hours unless is 12:00 (if no "PM", then length will be 1)
   {
 	  min_ampm[1] = "PM";
-	  //add 12 hours if in PM mode unless is 12:00PM (noon)
-	  if(actualHours != 12)
-		  actualHours += 12;
+	  //add 12 hours if in PM mode unless is 12:00PM (noon), so expect >= 12 (originally I thought we would use Date class, but since we are not, it doesn't matter)
+	  //if(actualHours != 12)
+		//  actualHours += 12;
   }
   else //otw either read AM or bad input
   {
+	  min_ampm = time2[1].split('A'); //expect 2 parts, "00","M"
+	  if(min_ampm.length != 2) //if we have bad input, give up on creating event
+	  {
+		  alert("Unable to create event. Please try again.");
+		  return;
+	  }
 	  min_ampm[1] = "AM";
-	  time2[0] = Number(time[0]);
-	  if(time2[0] == 12) //corrupted inputs stay corrupted, but 12AM becomes midnight
-		  time2[0] = 0;
+	  //if(actualHours == 12) //12AM becomes midnight, so expect <= 11 (thought we were using Date class. Since we are ID'ing elements by string XY(A|P)M, best to not change actual timing)
+		//  actualHours[0] = 0;
   }
 	  
-  console.log("Interpreted Time: y" + Number(arrayOfParts[3]) + "m" + Number(arrayOfParts[1]) + "d" + Number(arrayOfParts[2]) + "h" + Number(time2[0]) + "m" + Number(min_ampm[0]));
+  console.log("Interpreted Time: y" + Number(arrayOfParts[3]) + "m" + Number(arrayOfParts[1]) + "d" + Number(arrayOfParts[2]) + "h" + actualHours + "m" + Number(min_ampm[0]));
   //var givenDate = new Date(Number(arrayOfParts[3]),Number(arrayOfParts[1]) - 1,Number(arrayOfParts[2]),Number(time2[0]),Number(min_ampm[0]));  
   //arrayOfParts[3] is year, arrayOfParts[2] is Day, arrayOfParts[1] is Month, time[0] is hours, min_ampm[0] is seconds
-  var id_extension =  module.exports.zeroPad2(arrayOfParts[1],2) + module.exports.zeroPad2(arrayOfParts[2],2) + module.exports.zeroPad2(arrayOfParts[3],4) + "-" + time[0] + ":" + min_ampm[0] + "" + min_ampm[1];
+  var id_extension =  module.exports.zeroPad2(arrayOfParts[1],2) + module.exports.zeroPad2(arrayOfParts[2],2) + module.exports.zeroPad2(arrayOfParts[3],4) + "-" + actualHours + ":" + min_ampm[0] + "" + min_ampm[1];
   //example output: 12032016-2:00PM for december 3rd 2016 at 2:00 PM
   var id = date+"-"+time+"-"+id_extension+"-"+new Date().getTime();
   //ex 20161201-12:55PM-20161203-2:00PM for an event from 12:55PM on the 1st of dec 2016 to the 3rd of dec 2016 at 2:00PM
@@ -359,16 +364,16 @@ checkDateWithinRange: function(date,range)
 	else if(testDateObj.getTime() == startDateObj.getTime()) //starts today, so unless bad data, we're keeping this event
 	{
 		//console.log("Test is equal to start");
-		if(testDateObj.getTime() == endDateObj.getTime())
+		if(testDateObj.getTime() == endDateObj.getTime()) //same day event
 			return 1;
-		else if(testDateObj < endDateObj)
+		else if(testDateObj < endDateObj) //beginning day of event
 			return 3;
 		else //Impossible state: begins today, but ends BEFORE today. Assume cookie corrupted and we can't use this event
 			return 0;
 	}
-	else if(testDateObj.getTime() == endDateObj.getTime())
+	else if(testDateObj.getTime() == endDateObj.getTime()) //ends today, doesn't begin today
 	{
-		if(testDateObj > startDateObj)
+		if(testDateObj > startDateObj) //begins before today
 			return 4;
 		else //Impossible state: ends today, but begins AFTER today.
 			return 0;
@@ -376,7 +381,7 @@ checkDateWithinRange: function(date,range)
 	return 0;
 },
 
-//input: currentdate 
+//input: currentdate "01122016" for Jan 12th, 2016
 getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Chores at Macy's House until 12:00PM-1-12-2016
 	console.log("Date is " + date);
     var times = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
@@ -384,6 +389,7 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 	//every cookie ends in a ';', so this separates events
 	for(var i=0; i<doc.length; i++) { //for each component cookie, remove white space, then read in details information and display on DayView
         var cookie = doc[i]; //ex 12012016-9AM-12022016-9:00AM-(time_stamp)=Party Time at Sheridants until 9:00AM-12-02-2016
+		console.log("Cookie is: " + cookie);
         while (cookie.charAt(0)==' ') { //remove all white-space from beginning of string
             cookie = cookie.substring(1);
         }
@@ -398,68 +404,158 @@ getCookie: function(date) { //expected cookie: 20161201-12PM-20161203-2:00PM=Cho
 				var crumb = cookie.split('='); //expect "12012016-9AM-12032016-9:00AM-(time_stamp)","Chores at Macy's House until 12:00PM"
 				var content = crumb[1]; //expect "Chores at Macy's House until 12:00PM"
 				var id = crumb[0]; //11012016
+				//console.log("Cookie parts: " + cookieParts);
 				var startTime = cookieParts[1]; //expect "12PM"
+				//console.log("Start Time: " + cookieParts[1]);
 				var endTime = cookieParts[3]; //expect "2:00PM"
+				//console.log("End time before split: " + endTime);
 				endTime = endTime.split(':'); //expect "2","00PM"
 				if(endTime[1].split('P').length == 2) //if split can't find the character, it makes an array of length one with everything in element 0
 				{
-					console.log("End time is in PM");
+					//console.log("End time is in PM");
+					var minutesTrack = endTime[1].split('P'); //expect "30","M"
+					minutesTrack = Number(minutesTrack[0]); //expect 30
+					if(minutesTrack >= 30) //if the event goes over, say, 5:30, we want it to "end" at 6, so that it will display in the 5:00 time slot.
+					{
+						//take the current end time, increment by 1, then rebuild string
+						if(endTime[0] == "12") //12:00PM directly precedes 1:00PM
+						{
+							endTime[0] = "0";
+							//console.log("Pushing 12:XXPM to 1:00PM");
+						}
+							
+						else if(endTime[0] == "11") //if it ends at 11:30+ PM, it essentially goes into the next day
+						{
+							endTime[0] = "13";
+							//console.log("Pushing 11:XXPM to next day");
+						}
+							
+						endTime[0] = "" + (Number(endTime[0]) + 1); //hopefully returns String
+						//console.log("Incrementing time to " + endTime[0]);
+					}
+					
+					
 					
 					//$('#4AM').append("Testing 123 Testing<br /><br />"); //proof that at one point, 4AM was buggy from bad ID
 					
-					endTime[1] = "PM" //now we can say start is "12PM", end is "2PM"
-					endTime = endTime[0] + endTime[1]; //convert array back to string, expect "2PM"
+					endTime[1] = "PM"; //now we can say start is "12PM", end is "2PM"
+					
 					//the intention here is to do similarly to original getCookie code, but for every time in array between start time and end time
 					//console.log("For sanity sake, end time is " + endTime);
 					//iterate through 'times' passing through start and end time, creating events for each
-					var match = startTime; //initially 12PM
-					var pastStart = false;
-					var x = times.length;
-					console.log("For looping to test new getCookie: starting at " + startTime);
-					for(var i = 0; i < x; i++)
-					{
-						
-						if(!pastStart && (times[i] == startTime)) //keep going until we hit start, then start creating events
-						{
-							pastStart = true;
-							console.log("Starting at time: " + times[i]);
-							//create first event and now past start
-							$('#'+times[i]).append(content+'<br><br>'); //add details for this event to the view for current time
-							$('#rem'+i).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
-						}
-						else if(pastStart) //we have passed start, so keep watching until end time
-						{
-							if(times[i] != endTime) //if we have not reached end, place an event reference
-							{
-								console.log("Adding content to " + times[i] + " time: " + content);
-								$('#'+times[i]).append(content+'<br><br>'); //add details for this event to the view for current time
-								$('#rem'+i).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
-							}
-							else //end when we hit stop time
-							{
-								pastStart = false;
-								console.log("Found end time " + times[i]);
-							}
-						}
-					}
-					console.log("Finished iterating for event " + content);
+					
 				}	
-				else if(endTime.split('A').length == 2) //otw, if we can get AM string
+				else if(endTime[1].split('A').length == 2) //otw, if we can get AM string
 				{
-					console.log("Start time is in AM");
+					//console.log("End time is in AM");
+					var minutesTrack = endTime[1].split('A'); //expect "30","M"
+					endTime[1] = "AM";
+					minutesTrack = Number(minutesTrack[0]); //expect 30
+					if(minutesTrack >= 30) //if the event goes over, say, 5:30, we want it to "end" at 6, so that it will display in the 5:00 time slot.
+					{
+						//take the current end time, increment by 1, then rebuild string
+						if(endTime[0] == "12") //12:00AM directly precedes 1:00AM
+						{
+							endTime[0] = "0";
+							//console.log("Pushing 12:XXAM to 1:00AM");
+						}
+						else if(endTime[0] == "11") //if it ends at 11:30 AM, it stretches to 12:00PM
+						{
+							//endTime[0] = "11"; //its already 11, so it will increment anyway
+							//console.log("Pushing 11:XXAM to 12:00PM");
+							endTime[1] = "PM";
+						}
+							
+						endTime[0] = "" + (Number(endTime[0]) + 1); //hopefully returns String, increments the current hour by 1
+						//console.log("Incrementing time to " + endTime[0]);
+					}
+					
 				}
-				else
+				else //guard against potential malicious/corrupt input
 				{
 					console.log("Bad input");
+					continue; //returns to for loop and goes to next iteration (we don't want to create this weird broken event)
+					//should return to i for loop iterating through cookies, effectively skipping event creation for this cookie
 				}
+				
+				endTime = endTime[0] + endTime[1]; //convert array back to string, expect "2PM"
+				
+				var match = startTime; //the time we look for to indicate beginning to create events
+				var pastStart = false;//becomes true when we hit the first instance
+				var x = times.length;
+				//console.log("For looping to test new getCookie: starting at " + startTime + ", ending at " + endTime);
+				for(var j = 0; j < x; j++)
+				{
+					
+					if(!pastStart && (times[j] == startTime)) //keep going until we hit start, then start creating events
+					{
+						pastStart = true;
+						console.log("Starting at time: " + times[j]);
+						//create first event and now past start
+						$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+						$('#rem'+(j+1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+					}
+					else if(pastStart) //we have passed start, so keep watching until end time
+					{
+						if(times[j] != endTime) //if we have not reached end, place an event reference
+						{
+							console.log("Adding content to " + times[j] + " time: " + content);
+							$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+							$('#rem'+(j+1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+						}
+						else //end when we hit stop time
+						{
+							pastStart = false;
+							console.log("Found end time " + times[j]);
+						}
+					}
+				}
+				//console.log("Finished iterating for event " + content);
 					
 				
 				break;
 			case 2: //date within range, exclude end-points... so we just populate entire day with event
 				console.log("Current day is within range");
+				
+				var crumb = cookie.split('='); //expect "12012016-9AM-12032016-9:00AM-(time_stamp)","Chores at Macy's House until 12:00PM"
+				var content = crumb[1]; //expect "Chores at Macy's House until 12:00PM"
+				var id = crumb[0]; //11012016
+				var startTime = cookieParts[1]; //expect "12PM"
+				
+				var x = times.length;
+				for(var j = 0; j < x; j++) //add event to every block in day
+				{
+					//console.log("Adding content to " + times[j] + " time: " + content);
+					$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+					$('#rem'+j).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+				}
 				break;
 			case 3: //date begins range, so find start time and populate everything after
 				console.log("Current day begins range");
+				
+				//Start time is code-defined, not user-defined, so we don't have to do all the filtering for start time that end time needs
+				var crumb = cookie.split('='); //expect "12012016-9AM-12032016-9:00AM-(time_stamp)","Chores at Macy's House until 12:00PM"
+				var content = crumb[1]; //expect "Chores at Macy's House until 12:00PM"
+				var id = crumb[0]; //11012016
+				var startTime = cookieParts[1]; //expect "12PM"
+				
+				var x = times.length;
+				console.log("Times length is " + x);
+				for(var j = 0; j < x; j++) //find the start time
+				{
+					if(times[j] == startTime)
+						break;
+					//console.log("Adding content to " + times[j] + " time: " + content);
+					//$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+					//$('#rem'+j).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+				}
+				if(j == times.length) //if invalid input data, skip this event
+					continue;
+				for(; j < x; j++) //traverse through rest of loop creating events (we don't define j because we are using the j from last for loop)
+				{
+					$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+					$('#rem'+j).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+				}
 				break;
 			case 4: //date ends range, so find end time, then populate everything before
 				console.log("Current day ends range");
