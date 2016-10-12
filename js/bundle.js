@@ -1,6 +1,9 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+// BEGIN BrowserLoader.js.orig-------------------------------------------------
 var test = require('./test.js');
+// END BrowserLoader.js.orig-------------------------------------------------
 
+// BEGIN BrowserLoader.js------------------------------------------------------
 window.cookies = require('./CookieMonster.js');
 
 window.cookies.lastView();
@@ -199,7 +202,6 @@ else //Not week 1
     }
     end.setDate(loopDay-1);
   }
-
   $('#title').html(begin.toString('MMMM d')+' - '+end.toString('MMMM d'));
   var previous = Date.parse(begin.addDays(-7).toString('MMMM d yyyy'));;
   var next = Date.parse(end.addDays(1).toString('MMMM d yyyy'));
@@ -310,8 +312,9 @@ $(document).ready(function(){
             break;
 	}
 });
-
+// END BrowserLoader.js--------------------------------------------------------
 },{"./CookieMonster.js":2,"./jquery-3.1.0.min.js":6,"./test.js":7}],2:[function(require,module,exports){
+// BEGIN CookieMonster.js------------------------------------------------------
 //user clicks add event on certain day which calls the following script and gives
 //the script a  unique ID
 var $ = require('./jquery-3.1.0.min.js');
