@@ -321,8 +321,10 @@ window.jQuery = $;
 module.exports = {
     
 setCookie: function(date, time){
+	console.log("Time input is " + time);
   var times = ['12AM','1230AM','1AM','130AM','2AM','230AM','3AM','330AM','4AM','430AM','5AM','530AM','6AM','630AM','7AM','730AM','8AM','830AM','9AM','930AM','10AM','1030AM','11AM','1130AM','12PM','1230PM','1PM','130PM','2PM','230PM','3PM','330PM','4PM','430PM','5PM','530PM','6PM','630PM','7PM','730PM','8PM','830PM','9PM','930PM','10PM','1030PM','11PM','1130PM'];
   var id = "";
+  var repeatCount = 50; //how many iterations event repeats for
 
   var d = new Date();
   d.setTime(d.getTime() + (30*24*60*60*1000)); //current time plus 30 days but could be event date
@@ -340,140 +342,211 @@ setCookie: function(date, time){
   }
   var content = name+" at "+location;// create cookie content
 
-  var duration = 0;
-  while(Number(duration) < 1 || isNaN(Number(duration)))
-  {
-    duration=prompt("Please enter duration in minutes: ","30"); //set duration
-  }
+//  var duration = 0;
+//  while((Number(duration) < 1 || isNaN(Number(duration))) /*&& duration*/)
+	  //until a valid number is entered, or user hits cancel (which makes duration null), prompt them to set time
+//  {
+//    duration=prompt("Please enter duration in minutes" /*+ ", or Cancel to set time and date: "*/,"30"); //set duration
+//  }
+//  if(!duration) //user canceled out, so prompt for end time & date
+//  {
+	var badInput = true;
+	while(badInput)
+	{
+		var endDate = prompt("Please enter event ending date:","1-1-2016");
+		if(!endDate)
+			return;
+		endDate = endDate.split('-'); //expect "1","1","2016"
+		if(endDate.length != 3 || isNaN(Number(endDate[0])) || isNaN(Number(endDate[1])) || isNaN(Number(endDate[2]))) //user gave bad input
+			continue; //ask them again
+		console.log("broke through date validation with: " + endDate);
+		
+		var endTime = prompt("Please enter event ending time: ","12:00PM"); //set duration
+		if(!endTime) //user canceled, so they probably gave up on event creation
+		{
+			return "";
+		}
+		var noColonTime = endTime.split(':'); //expect 2 parts, "12" (hours), "00PM" (minutes)
+		if(isNaN(Number(noColonTime[0])) || noColonTime.length != 2)
+		{
+			console.log("Hours are not a number or length too short");
+			continue;
+		}
+			
+		var noXMTime = noColonTime[1].split('P'); //expect 2 parts, "00","PM", or 1 part "00AM"
+		if(noXMTime.length != 2)
+		{
+			noXMTime = noColonTime[1].split('A');
+			if(noXMTime.length != 2)
+			{
+				console.log("Failed at AM stage");
+				continue;
+			}
+			else
+			{
+				noXMTime[1] = "AM";
+			}
+		}
+		else
+		{
+			noXMTime[1] = "PM";
+		}
+		
+		if(isNaN(Number(noXMTime[0]))) //after breaking up minutes from AM/PM, validate
+		{
+			console.log("Minutes is NaN");
+			continue;
+		}
+		
+		
+			
+		
+		//console.log("Without PM, minutes is: " + noXMTime); //getting minutes correctly
+		var endMinutes = Number(noXMTime[0]);
+		var endHours = Number(noColonTime[0]);
+		var ampm = noXMTime[1];
+		console.log("End minutes: " + endMinutes);
+		if(endMinutes > 59)
+		{
+			console.log("Failing because >59 minutes");
+			continue;
+		}
+		else if(endMinutes >= 45) //above 30 min mark, move to next hour
+		{
+			if(endHours == 12)
+			{
+				console.log("Rounding to 1 o clock");
+				endHours = 1;
+			}
+			else if(endHours == 11)
+			{
+				if(ampm == "AM")
+				{
+					ampm = "PM";
+					console.log("Rounding to 12PM");
+					endHours = 12;
+				}
+				else if(ampm == "PM")
+				{
+					endHours = 13; //force event to go through entire day
+					console.log("Rounding to all-day");
+				}
+			}
+			else{
+				endHours ++;
+			}
+			endTime = endHours + ampm; //ex "5AM"
+		}
+		else if(endMinutes >= 15) //above 15 min mark, move to half hour
+		{
+			console.log("Rounding to half hour");
+			endTime = endHours + "30" + ampm;
+		}
+		else //otw, below 15 mins, round to 0&&
+		{
+			console.log("Rounding to the hour");
+			endTime = endHours + ampm;
+		}
+		
+		badInput = false;
+		//input validation
+	}
+	
+	console.log("Final time: " + endTime);
+	
+	
+ // }
+  //beforehand, configure ID for creating events
+  //after, repeat the ID for a given repetition count
   
-/*  var endTime = endTime=prompt("Please enter event ending time: ","12:00PM"); //set duration
-  if(!endTime)
-  {
-    return "";
-  }
-    var noColonTime = endTime.split(':'); //expect 2 parts, "12" (hours), "00PM" (minutes)
-    var noXMTime = noColonTime[1].split('PM'); //expect 2 parts, "00","PM"
-    var pureTime = noColonTime[0].concat(noXMTime[0]);
-    var duration = (((Number(pureTime) - Number(time))*60)/100);
-  var endDate=prompt("Please enter end date: ","1-12-2016"); //set ending date
-  if(!endDate)
-  {
-    return "";
-  }
-*/
-  var repetition = 5;
+
+  
+  
+  var repetition = 5; //current reptition mode (0 norepeat, 1 daily, 2 weekly, 3 biweekly, 4 monthly)
   while(isNaN(Number(repetition)) || Number(repetition) < 0 || Number(repetition) > 3)
   {
 	repetition=prompt("0 - no repeat\n1 - repeat daily\n2 - repeat weekly\n3 - repeat biweekly\n4 - repeat monthly","0"); //set repeat
   }
+  if(!repetition) //bail if the user canceled
+	  return "";
 
   var eventDate = new Date();
   eventDate.setFullYear(Number(date.substr(4,4)));
   eventDate.setMonth(Number(date.substr(0,2))-1);
   eventDate.setDate(Number(date.substr(2,2)));
-  if(Number(duration) > 30)
-  {
+  //console.log(eventDate.toString('MMddyyyy'));
+    //try multiday format: 
+  var eventStop = new Date(); 
+  eventStop.setFullYear(Number(endDate[2]));
+  eventStop.setMonth(Number(endDate[0])-1);
+  eventStop.setDate(Number(endDate[1]));
+  //if(Number(duration) > 30)
+  //{
 	if(Number(repetition) == 1)
 	{
-		for(var y = 0; y < 2; y++) //1825
+		for(var y = 0; y < repeatCount; y++) //1825 - for every day, create the event set
 		{
-			for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
-			{
-				id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)+x]+"-"+new Date().getTime();
-  				document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-			}
+			//for(var x = 0; x < Math.ceil(Number(duration)/30); x++) //for every 30 sec interval, create an event
+			//{
+				id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)]+"-"+eventStop.toString('MMddyyyy')+"-"+times[times.indexOf(endTime)]+"-"+new Date().getTime(); //EX date: 12012016-12AM-12022016-630PM
+				document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+			//}
 			eventDate.addDays(1);
+			eventStop.addDays(1);
 		}
 	}
 	else if(Number(repetition) == 2)
 	{
-		for(var y = 0; y < 2; y++) //260
+		for(var y = 0; y < repeatCount; y++) //260
 		{
-			for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
-			{
-				id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)+x]+"-"+new Date().getTime();
-  				document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-			}
+			//for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
+			//{
+				id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)]+"-"+eventStop.toString('MMddyyyy')+"-"+times[times.indexOf(endTime)]+"-"+new Date().getTime(); //EX date: 12012016-12AM-12022016-630PM
+				document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+			//}
 			eventDate.addDays(7);
+			eventStop.addDays(7);
 		}
 	}
   else if(Number(repetition) == 3)
   {
-    for(var y = 0; y < 2; y++) //260
+    for(var y = 0; y < repeatCount; y++) //260
     {
-      for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
-      {
-        id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)+x]+"-"+new Date().getTime();
-          document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-      }
+      //for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
+      //{
+        id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)]+"-"+eventStop.toString('MMddyyyy')+"-"+times[times.indexOf(endTime)]+"-"+new Date().getTime(); //EX date: 12012016-12AM-12022016-630PM
+			document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+      //}
       eventDate.addDays(14);
+	  eventStop.addDays(14);
     }
   }
 	else if(Number(repetition) == 4)
 	{
-		for(var y = 0; y < 2; y++) //60
+		for(var y = 0; y < repeatCount; y++) //60
 		{
-			for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
-			{
-				id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)+x]+"-"+new Date().getTime();
-  				document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-			}
+			//for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
+			//{
+				id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)]+"-"+eventStop.toString('MMddyyyy')+"-"+times[times.indexOf(endTime)]+"-"+new Date().getTime(); //EX date: 12012016-12AM-12022016-630PM
+				document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+			//}
 			eventDate.addDays(Date.getDaysInMonth(eventDate.getYear(),eventDate.getMonth()));
+			eventStop.addDays(Date.getDaysInMonth(eventStop.getYear(),eventStop.getMonth()));
 		}
 	}
-	else
+	else //otw repetition == 0, or bad translation => create no-repeat event
 	{
-		for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
-		{
-			id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)+x]+"-"+new Date().getTime();
-  			document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-		}
+		//for(var x = 0; x < Math.ceil(Number(duration)/30); x++)
+		//{
+			id = eventDate.toString('MMddyyyy')+"-"+times[times.indexOf(time)]+"-"+eventStop.toString('MMddyyyy')+"-"+times[times.indexOf(endTime)]+"-"+new Date().getTime(); //EX date: 12012016-12AM-12022016-630PM
+			document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
+		//}
 	}
-  }
-  else //Less than 30 minute event
-  {
-	if(Number(repetition) == 1)
-	{
-		for(var y = 0; y < 2; y++) //1825
-		{
-			id = eventDate.toString('MMddyyyy')+"-"+time+"-"+new Date().getTime();
-  			document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-			eventDate.addDays(1);
-		}
-	}
-	else if(Number(repetition) == 2)
-	{
-		for(var y = 0; y < 2; y++) //260
-		{
-			id = eventDate.toString('MMddyyyy')+"-"+time+"-"+new Date().getTime();
-  			document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-			eventDate.addDays(7);
-		}
-	}
-  else if(Number(repetition) == 3)
-  {
-    for(var y = 0; y < 2; y++) //260
-    {
-      id = eventDate.toString('MMddyyyy')+"-"+time+"-"+new Date().getTime();
-        document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-      eventDate.addDays(14);
-    }
-  }
-	else if(Number(repetition) == 4)
-	{
-		for(var y = 0; y < 2; y++) //60
-		{
-			id = eventDate.toString('MMddyyyy')+"-"+time+"-"+new Date().getTime();
-  			document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-			eventDate.addDays(Date.getDaysInMonth(eventDate.getYear(),eventDate.getMonth()));
-		}
-	}
-	else
-	{
-		id = eventDate.toString('MMddyyyy')+"-"+time+"-"+new Date().getTime();
-  		document.cookie = id+"="+content+"; "+expires+"; path=/"; //create cookie
-	}
-  }
+  //}
+  
+  //since events are not treated in 30 minute intervals, we are good
+  console.log("Creating event from " + eventDate.toString() + " to " + eventStop.toString());
+  console.log("Cookie for event is: " + id+"="+content+"; "+expires+"; path=/");
 
   window.location.reload();
   return content;// return cookie content to be displayed in day view.
@@ -513,27 +586,147 @@ getLastView: function(){
     }
 },
 
+//Cookie for event is: 01072016-12AM-01202016-330AM-1476235152007=a at b; expires=Fri, 11 Nov 2016 01:18:52 GMT; path=/
+//date is 01082016 for 8th of Jan 2016
 getCookie: function(date) {
       var times = ['12AM','1230AM','1AM','130AM','2AM','230AM','3AM','330AM','4AM','430AM','5AM','530AM','6AM','630AM','7AM','730AM','8AM','830AM','9AM','930AM','10AM','1030AM','11AM','1130AM','12PM','1230PM','1PM','130PM','2PM','230PM','3PM','330PM','4PM','430PM','5PM','530PM','6PM','630PM','7PM','730PM','8PM','830PM','9PM','930PM','10PM','1030PM','11PM','1130PM'];
     var doc = document.cookie.split(';');
-    for(var i=0; i<doc.length; i++) {
+    for(var i=0; i<doc.length; i++) { //for each cookie, try to display its data
         var cookie = doc[i];
-        while (cookie.charAt(0)==' ') {
+		console.log("Cookie: " + cookie);
+        while (cookie.charAt(0)==' ') { //remove whitespace
             cookie = cookie.substring(1);
         }
-        if(cookie.includes(date)){
-          var crumb = cookie.split('=');
-          var content = crumb[1];
-          var crumb2 = crumb[0].split('-');
-          var time = crumb2[1];
-          var id = crumb[0];
-          $('#'+time).append(content+'<br><br>');
-          var remNum = times.indexOf(time)+1;
-          $('#rem'+remNum).attr('onclick','cookies.deleteCookie(\''+id+'\')');
-        }
+		
+		//get dates from cookie to see if today is within range of cookie
+		var crumb = cookie.split('='); //expect "01072016-12AM-01202016-330AM-1476235152007","a at b; expires=Fri, 11 Nov 2016 01:18:52 GMT"
+		console.log("Relevant Part: " + crumb[0]);
+		var id = crumb[0];
+		var content = crumb[1];
+		var brokenCookie = crumb[0].split('-'); //expect "01072016","12AM","01202016","330AM","1476235152007"
+		var startDate = brokenCookie[0]; //expect "01072016"
+		var startDateObj = new Date();
+		startDateObj.setFullYear(Number(startDate.substring(4,8)));
+		startDateObj.setMonth(Number(startDate.substring(0,2))-1);
+		startDateObj.setDate(Number(startDate.substring(2,4)));
+		var stopDate = brokenCookie[2]; //expect "01202016"
+		
+		var stopDateObj = new Date();
+		stopDateObj.setFullYear(Number(stopDate.substring(4,8)));
+		stopDateObj.setMonth(Number(stopDate.substring(0,2))-1);
+		stopDateObj.setDate(Number(stopDate.substring(2,4)));
+		var currentDateObj = new Date();
+		
+		currentDateObj.setFullYear(Number(date.substring(4,8)));
+		currentDateObj.setMonth(Number(date.substring(0,2))-1);
+		currentDateObj.setDate(Number(date.substring(2,4)));
+		
+		console.log("Stop date: " + stopDateObj.toString());
+		console.log("Start date: " + startDateObj.toString());
+		console.log("Current date " + currentDateObj);
+		
+		var startTime = brokenCookie[1]; //expect "12AM"
+		var stopTime = brokenCookie[3]; //expect "330AM"
+		console.log("Stop time: " + stopTime);
+		
+		var x = times.length;
+		
+		if(currentDateObj.getTime() == startDateObj.getTime()) //if today is start day
+		{
+			console.log(id + " starts today");
+			if(currentDateObj.getTime() == stopDateObj.getTime()) //today is also stop day, so test start and end times
+			{
+				var pastStart = false;
+				console.log(id + " starts and stops today");
+				for(var j = 0; j < x; j++) //iterate through times until we hit start, then iterate and populate until we hit end
+				{
+					console.log("For loop iteration " + j);
+					
+					if(!pastStart && (times[j] == startTime)) //keep going until we hit start, then start creating events
+					{
+						pastStart = true;
+						console.log("Starting at time: " + times[j]);
+						//create first event and now past start
+						$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+						$('#rem'+(j+1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+					}
+					else if(pastStart) //we have passed start, so keep watching until end time
+					{
+						console.log(times[j] + " vs " + stopTime);
+						if(times[j] != stopTime) //if we have not reached end, place an event reference
+						{
+							//console.log("Adding content to " + times[j] + " time: " + content);
+							$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+							$('#rem'+(j+1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+						}
+						else //end when we hit stop time
+						{
+							pastStart = false;
+							console.log("Found end time " + times[j]);
+						}
+					}
+				}
+			}
+			else //otw only start day, so just find start time, and everything after that is part of event
+			{
+				console.log(id + " ONLY starts today");
+				console.log("Times length is " + x);
+				for(var j = 0; j < x; j++) //find the start time
+				{
+					if(times[j] == startTime)
+						break;
+				}
+				if(j == times.length) //if invalid input data, skip this event, it is corrupted
+					continue;
+				//after finding start time, then we start populating events until we hit end
+				for(; j < x; j++) //traverse through rest of loop creating events (we don't define j because we are using the j from last for loop)
+				{
+					$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+					$('#rem'+(j + 1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+				}
+			}
+		}
+		else if(currentDateObj.getTime() == stopDateObj.getTime()) //if not start day, but is end day => keep populating until we hit end day
+		{
+			if(currentDateObj < startDateObj) //if stopping before we started, corrupted event, cancel out
+				continue;
+			console.log(id + " stops today");
+			for(var j = 0; j < x; j++) //loop until we hit the end point, adding events as we go, then stop after that
+			{
+				if(times[j] == stopTime) //stop when we hit end time
+					break;
+				//console.log("Adding content to " + times[j] + " time: " + content);
+				$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+				$('#rem'+(j + 1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+			}
+		}
+		else if ((currentDateObj > startDateObj) && (currentDateObj < stopDateObj)) //otw between times
+		{
+			console.log(id + " lies between");
+			for(var j = 0; j < x; j++) //add event to every block in day
+			{
+				$('#'+times[j]).append(content+'<br><br>'); //add details for this event to the view for current time
+				$('#rem'+(j + 1)).attr('onclick','cookies.deleteCookie(\''+id+'\')'); //tell delete button to delete this cookie next
+			}
+		}
+		else
+		{
+			continue;
+		}
+		console.log("Done with Cookie " + content);
+		console.log("");
+//        if(cookie.includes(date)){
+//          
+//          var content = crumb[1];
+//          var crumb2 = crumb[0].split('-');
+//          var time = crumb2[1];
+//          var id = crumb[0];
+//          $('#'+time).append(content+'<br><br>');
+//          var remNum = times.indexOf(time)+1;
+//          $('#rem'+remNum).attr('onclick','cookies.deleteCookie(\''+id+'\')');
+//        }
       }
     }
-
 }
 },{"./jquery-3.1.0.min.js":6}],3:[function(require,module,exports){
 var Datejs = require('./date.js');
