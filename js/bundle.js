@@ -135,14 +135,43 @@ function loadWeek(year,month,week,day){
     for(var d = 1; d <= 7; d++)
     {
       $('#d'+d).html(loopMonth+'/'+loopDay);
-      // if January and the 8th or above
+      // if week 1 in January and the 8th or above
       if(month == 1 && loopDay > 7)
       {
-        $('#d'+d).attr('onclick', 'goToNewPage(\''+'day.html#'+(year-1)+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+        var temp = new Date();
+        temp.setFullYear(year-1);
+        temp.setMonth(11);
+        temp.setDate(1);
+        if(temp.getDay() == 5 || temp.getDay() == 6)
+        {
+          $('#d'+d).attr('onclick', 'goToNewPage(\''+'day.html#'+(year-1)+zeroPad(loopMonth,2)+"6"+zeroPad(loopDay,2)+'\')');
+        }
+        else
+        {
+          $('#d'+d).attr('onclick', 'goToNewPage(\''+'day.html#'+(year-1)+zeroPad(loopMonth,2)+"5"+zeroPad(loopDay,2)+'\')');
+        }
       }
-      else
+      else //Last month is not last year
       {
-        $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+        if(loopDay > 7)
+        {
+          var temp = new Date();
+          temp.setFullYear(year);
+          temp.setMonth(loopMonth-1);
+          temp.setDate(1);
+          if(Date.getDaysInMonth(year, loopMonth-1) == 31 && temp.getDay() >= 5 || Date.getDaysInMonth(year, loopMonth-1) == 31 && temp.getDay() == 6)
+          {
+            $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+"6"+zeroPad(loopDay,2)+'\')');
+          }
+          else
+          {
+            $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+"5"+zeroPad(loopDay,2)+'\')');
+          }
+        }
+        else
+        {
+          $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+        }
       }
       loopDay++;
       if(loopDay > Date.getDaysInMonth(year,loopMonth-1)) //Week starts with last month
@@ -171,11 +200,18 @@ else //Not week 1
       $('#d'+d).html(loopMonth+'/'+loopDay);
       if(month == 12 && week > 2 && loopDay < 8) //December and week goes into next year
       {
-        $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+(year+1)+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+        $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+(year+1)+zeroPad(loopMonth,2)+"1"+zeroPad(loopDay,2)+'\')');
       }
       else
       {
-        $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+        if(week > 3 && loopDay < 8)
+        {
+          $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+"1"+zeroPad(loopDay,2)+'\')');
+        }
+        else
+        {
+          $('#d'+d).attr('onclick','goToNewPage(\''+'day.html#'+year+zeroPad(loopMonth,2)+week+zeroPad(loopDay,2)+'\')');
+        }
       }
       loopDay++;
       if(loopDay > Date.getDaysInMonth(year,loopMonth-1))
@@ -202,9 +238,11 @@ else //Not week 1
     }
     end.setDate(loopDay-1);
   }
+
   $('#title').html(begin.toString('MMMM d')+' - '+end.toString('MMMM d'));
   var previous = Date.parse(begin.addDays(-7).toString('MMMM d yyyy'));;
   var next = Date.parse(end.addDays(1).toString('MMMM d yyyy'));
+//--------Previous----------------------------------------------------------
   if(week == 1) //Previous week will become 5 or 4
   {
     var temp = new Date();
@@ -257,6 +295,8 @@ else //Not week 1
   {
     $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+(week-1)+zeroPad(previous.getDate(),2)+'\')');
   }
+//-------------------------------------------------------------------
+//----------------Next----------------------------------------------
   if(week == 6)
   {
     $('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"2"+zeroPad(next.getDate(),2)+'\')');
@@ -292,6 +332,7 @@ else //Not week 1
   {
     $('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+(week+1)+zeroPad(next.getDate(),2)+'\')');
   }
+//-----------------------------------------------------------------------------
   $('#back').attr('onclick','goToNewPage(\''+'month.html#'+ year.toString()+month.toString()+'\')');
 }
 
