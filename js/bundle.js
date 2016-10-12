@@ -275,7 +275,7 @@ else //Not week 1
        (Date.getDaysInMonth(year,targetMonth) == 31) &&(temp.getDay() < 5))	//If this month does not have 6 weeks
     {
       temp.setDate(Date.getDaysInMonth(year,targetMonth));
-      if(temp.getDay == 6)
+      if(temp.getDay() == 6)
       {
         $('#next').attr('onclick','goToSamePage(\''+'week.html#'+ (next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+newMonthWeek1+ zeroPad(next.getDate(),2)+'\')');
       }
