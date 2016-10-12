@@ -205,29 +205,61 @@ else //Not week 1
   $('#title').html(begin.toString('MMMM d')+' - '+end.toString('MMMM d'));
   var previous = Date.parse(begin.addDays(-7).toString('MMMM d yyyy'));;
   var next = Date.parse(end.addDays(1).toString('MMMM d yyyy'));
-  if(week != 1)
-  {
-    $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+(week-1)+zeroPad(previous.getDate(),2)+'\')');
-  }
-  else //Previous week will become 6, 5(, or maybe 4)
+  if(week == 1) //Previous week will become 5 or 4
   {
     var temp = new Date();
     temp.setFullYear(previous.getYear()+1900);
     temp.setMonth(previous.getMonth());
     temp.setDate(1);
     if((Date.getDaysInMonth(temp.getYear(),temp.getMonth()) > 29 && temp.getDay() == 6) ||
-       (Date.getDaysInMonth(temp.getYear(),temp.getMonth()) == 31 && temp.getDay() == 5))
+       (Date.getDaysInMonth(temp.getYear(),temp.getMonth()) == 31 && temp.getDay() == 5)) //Last month has 6 weeks
+    {
+      $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"5"+zeroPad(previous.getDate(),2)+'\')');
+    }
+    else
+    {
+      temp.setDate(Date.getDaysInMonth(temp.getYear(),temp.getMonth()));
+      if(temp.getDay() == 6)
+      {
+        $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"5"+zeroPad(previous.getDate(),2)+'\')');
+      }
+      else
+      {
+        $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"4"+zeroPad(previous.getDate(),2)+'\')');
+      }
+    }
+  }
+  else if(week == 2)
+  {
+    var temp = new Date();
+    temp.setFullYear(previous.getYear()+1900);
+    temp.setMonth(previous.getMonth());
+    temp.setDate(1);
+    if((Date.getDaysInMonth(temp.getYear(),temp.getMonth()) > 29 && temp.getDay() == 6) ||
+       (Date.getDaysInMonth(temp.getYear(),temp.getMonth()) == 31 && temp.getDay() == 5)) //Last month has 6 weeks
     {
       $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"6"+zeroPad(previous.getDate(),2)+'\')');
     }
     else
     {
-      $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"5"+zeroPad(previous.getDate(),2)+'\')');
+      temp.setDate(Date.getDaysInMonth(temp.getYear(),temp.getMonth()));
+      if(temp.getDay() == 6)
+      {
+        $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"1"+zeroPad(previous.getDate(),2)+'\')');
+      }
+      else
+      {
+        $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+"5"+zeroPad(previous.getDate(),2)+'\')');
+      }
     }
+  }
+  else
+  {
+    $('#previous').attr('onclick','goToSamePage(\''+'week.html#'+(previous.getYear()+1900)+zeroPad(previous.getMonth()+1,2)+(week-1)+zeroPad(previous.getDate(),2)+'\')');
   }
   if(week == 6)
   {
-    $('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"1"+zeroPad(next.getDate(),2)+'\')');
+    $('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"2"+zeroPad(next.getDate(),2)+'\')');
   }
   else if(week == 5) //If month only has 5 weeks, next week is week 1
   {
@@ -239,16 +271,24 @@ else //Not week 1
     temp.setDate(1);
     if((Date.getDaysInMonth(year,targetMonth) < 30) ||
        (Date.getDaysInMonth(year,targetMonth) == 30) && (temp.getDay() < 6) ||
-       (Date.getDaysInMonth(year,targetMonth) == 31) &&(temp.getDay() < 5))
+       (Date.getDaysInMonth(year,targetMonth) == 31) &&(temp.getDay() < 5)) //If this month does not have 6 weeks
     {
-      $('#next').attr('onclick','goToSamePage(\''+'week.html#'+ (next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+newMonthWeek1+ zeroPad(next.getDate(),2)+'\')');
+      temp.setDate(Date.getDaysInMonth(year,targetMonth));
+      if(temp.getDay() == 6)
+      {
+        $('#next').attr('onclick','goToSamePage(\''+'week.html#'+ (next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+newMonthWeek1+ zeroPad(next.getDate(),2)+'\')');
+      }
+      else
+      {
+        $('#next').attr('onclick','goToSamePage(\''+'week.html#'+ (next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"2"+ zeroPad(next.getDate(),2)+'\')');
+      }
     }
     else
     {
       $('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+"6"+zeroPad(next.getDate(),2)+'\')');
     }    
   }
-  else
+  else //week number < 5
   {
     $('#next').attr('onclick','goToSamePage(\''+'week.html#'+(next.getYear()+1900)+zeroPad(next.getMonth()+1,2)+(week+1)+zeroPad(next.getDate(),2)+'\')');
   }
